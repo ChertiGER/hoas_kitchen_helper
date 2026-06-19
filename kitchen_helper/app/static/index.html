@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Küchenhelfer - Rezeptdatenbank & KI Planer</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./icon.png">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -59,8 +61,8 @@
     <header class="bg-slate-900 border-b border-slate-800 shadow-lg px-4 py-3 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
-                <div class="bg-amber-500 text-slate-950 p-2.5 rounded-xl shadow-md shadow-amber-500/20">
-                    <i class="fa-solid fa-utensils text-xl"></i>
+                <div class="w-11 h-11 bg-slate-900 rounded-xl overflow-hidden shadow-md shadow-amber-500/10 border border-slate-800 flex items-center justify-center">
+                    <img src="./icon.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -374,6 +376,27 @@
                         </div>
                     </div>
 
+                    <!-- Standard-Einstellungen (Standard-Kalender & Standard-Einkaufsliste) -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders text-amber-500"></i> Standard-Einstellungen
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Standard-Kalender</label>
+                                <select id="settings-calendar-select" onchange="saveConfigSettings()" class="w-full bg-slate-900 text-slate-200 py-1.5 px-2.5 rounded-lg border border-slate-800 text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none">
+                                    <!-- Dynamic -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Standard-Einkaufsliste</label>
+                                <select id="settings-todo-select" onchange="saveConfigSettings()" class="w-full bg-slate-900 text-slate-200 py-1.5 px-2.5 rounded-lg border border-slate-800 text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none">
+                                    <!-- Dynamic -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="space-y-4">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gefundene Kalender-Entitäten</h3>
                         <div id="settings-calendars-list" class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-1 max-h-[120px] overflow-y-auto">
@@ -393,6 +416,27 @@
                             <i class="fa-solid fa-circle-info"></i> Wie funktioniert die Integration?
                         </p>
                         <p>Dieses Addon läuft als nativer Dienst innerhalb deines Home Assistant Systems. Sobald es gestartet wird, verbindet es sich automatisch über die Supervisor API mit deinem Home Assistant Core. Es liest die Kalender und Einkaufslisten (To-Dos) aus, um Rezepte direkt einzuplanen und Zutaten hinzuzufügen.</p>
+                    </div>
+
+                    <!-- Lovelace Card Anleitung -->
+                    <div class="bg-indigo-600/10 border border-indigo-500/20 rounded-xl p-4 text-xs text-slate-300 leading-relaxed space-y-2.5">
+                        <p class="font-bold text-indigo-400 flex items-center gap-1.5 text-sm">
+                            <i class="fa-solid fa-square-poll-horizontal"></i> Lovelace Dashboard Rezeptkarte
+                        </p>
+                        <p>Füge deinem Home Assistant Dashboard eine Rezeptkarte im HelloFresh/Chefkoch-Stil hinzu, die das heute geplante Gericht anzeigt.</p>
+                        <div class="flex items-center gap-2 pt-1">
+                            <a href="./kitchen-helper-card.js" download class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 px-3 rounded-lg text-[11px] transition shadow-sm inline-flex items-center gap-1">
+                                <i class="fa-solid fa-download"></i> Card-Code herunterladen
+                            </a>
+                            <a href="./kitchen-helper-card.js" target="_blank" class="text-slate-400 hover:text-slate-200 text-[11px] underline">
+                                Code ansehen
+                            </a>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 font-mono text-[10px] text-amber-400 mt-2 space-y-1 select-all">
+                            <p># Manuelle Karte im Dashboard:</p>
+                            <p>type: custom:kitchen-helper-card</p>
+                            <p>entity: calendar.dein_kochplan_kalender</p>
+                        </div>
                     </div>
                 </div>
             </div>

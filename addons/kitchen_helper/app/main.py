@@ -16,7 +16,9 @@ from .database import (
     get_pantry_ingredients,
     add_pantry_ingredient,
     delete_pantry_ingredient,
-    is_staple_ingredient
+    is_staple_ingredient,
+    get_setting,
+    set_setting
 )
 from .ha_api import (
     get_calendars,
@@ -39,13 +41,18 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Küchenhelfer API",
     description="Backend-Dienste für das Küchenhelfer Home Assistant Addon",
-    version="1.3.0",
+    version="1.4.0",
     lifespan=lifespan
 )
 
 # API Schemas
 class PantryItem(BaseModel):
     name: str
+
+
+class SettingsSchema(BaseModel):
+    default_calendar: Optional[str] = None
+    default_shopping_list: Optional[str] = None
 
 
 class IngredientSchema(BaseModel):
@@ -193,12 +200,26 @@ def ha_status():
     """Gibt den Status der Home Assistant API-Verbindung zurück."""
     from .llm import load_config
     cfg = load_config()
+    db_calendar = get_setting("default_calendar", cfg.get("default_calendar", ""))
+    db_shopping_list = get_setting("default_shopping_list", cfg.get("default_shopping_list", ""))
     return {
         "connected": is_ha_available(),
         "using_token": bool(os.environ.get("SUPERVISOR_TOKEN")),
-        "default_calendar": cfg.get("default_calendar", ""),
-        "default_shopping_list": cfg.get("default_shopping_list", "")
+        "default_calendar": db_calendar,
+        "default_shopping_list": db_shopping_list
     }
+
+
+@app.post("/api/settings")
+def save_settings(settings: SettingsSchema):
+    try:
+        if settings.default_calendar is not None:
+            set_setting("default_calendar", settings.default_calendar)
+        if settings.default_shopping_list is not None:
+            set_setting("default_shopping_list", settings.default_shopping_list)
+        return {"message": "Einstellungen erfolgreich gespeichert"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Speichern der Einstellungen: {e}")
 
 
 @app.get("/api/ha/calendars")

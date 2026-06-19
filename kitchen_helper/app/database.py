@@ -57,6 +57,14 @@ def init_db():
     );
     """)
 
+    # Settings-Tabelle (Konfigurationen)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    );
+    """)
+
     conn.commit()
     conn.close()
 
@@ -313,3 +321,28 @@ def delete_pantry_ingredient(name: str) -> bool:
     conn.commit()
     conn.close()
     return rows > 0
+
+
+def get_setting(key: str, default: Optional[str] = None) -> Optional[str]:
+    """Holt einen Einstellungswert aus der Datenbank."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+        row = cursor.fetchone()
+        return row["value"] if row else default
+    except sqlite3.OperationalError:
+        return default
+    finally:
+        conn.close()
+
+
+def set_setting(key: str, value: str):
+    """Speichert einen Einstellungswert in der Datenbank."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value.strip()))
+        conn.commit()
+    finally:
+        conn.close()

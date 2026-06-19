@@ -718,10 +718,12 @@ async function loadSystemStatus() {
 function populateCalendarsDropdowns() {
     const listContainer = document.getElementById("settings-calendars-list");
     const modalSelect = document.getElementById("modal-calendar-select");
+    const settingsSelect = document.getElementById("settings-calendar-select");
     
     if (calendars.length === 0) {
         listContainer.innerHTML = '<p class="text-slate-500 text-sm p-2">Keine Kalender gefunden.</p>';
         modalSelect.innerHTML = '<option value="">Kein Kalender verfügbar</option>';
+        settingsSelect.innerHTML = '<option value="">Kein Kalender verfügbar</option>';
         return;
     }
     
@@ -733,13 +735,19 @@ function populateCalendarsDropdowns() {
         </div>
     `).join("");
     
-    // Modal-Planer Dropdown
-    modalSelect.innerHTML = calendars.map(cal => `
+    // Dropdowns befüllen
+    const calOptionsHtml = calendars.map(cal => `
         <option value="${cal.entity_id}">${cal.name}</option>
     `).join("");
+    
+    modalSelect.innerHTML = calOptionsHtml;
+    settingsSelect.innerHTML = `<option value="">-- Kein Standard --</option>` + calOptionsHtml;
 
     if (defaultCalendarEntity && calendars.some(cal => cal.entity_id === defaultCalendarEntity)) {
         modalSelect.value = defaultCalendarEntity;
+        settingsSelect.value = defaultCalendarEntity;
+    } else {
+        settingsSelect.value = "";
     }
 }
 
@@ -747,6 +755,7 @@ function populateTodoDropdowns() {
     const listContainer = document.getElementById("settings-todos-list");
     const modalSelect = document.getElementById("modal-todo-select");
     const defaultSelect = document.getElementById("default-todo-select");
+    const settingsSelect = document.getElementById("settings-todo-select");
     
     // Füge die klassische Home Assistant Einkaufsliste immer als Fallback hinzu
     const allOptions = [...todoLists, { entity_id: "legacy", name: "Klassische Einkaufsliste (shopping_list)" }];
@@ -766,12 +775,15 @@ function populateTodoDropdowns() {
     
     modalSelect.innerHTML = selectHtml;
     defaultSelect.innerHTML = selectHtml;
+    settingsSelect.innerHTML = `<option value="">-- Kein Standard --</option>` + selectHtml;
     
-    // Standardwert für defaultSelect/modalSelect setzen
+    // Standardwert für defaultSelect/modalSelect/settingsSelect setzen
     if (defaultTodoEntity && allOptions.some(o => o.entity_id === defaultTodoEntity)) {
         defaultSelect.value = defaultTodoEntity;
         modalSelect.value = defaultTodoEntity;
+        settingsSelect.value = defaultTodoEntity;
     } else {
+        settingsSelect.value = "";
         const hasShoppingList = allOptions.find(o => o.entity_id === "todo.shopping_list");
         if (hasShoppingList) {
             defaultSelect.value = "todo.shopping_list";
@@ -782,9 +794,12 @@ function populateTodoDropdowns() {
         }
     }
     
-    // Wenn defaultSelect geändert wird, ändere auch den Wert im Modal
+    // Wenn defaultSelect geändert wird, ändere auch den Wert in den anderen Dropdowns und speichere
     defaultSelect.addEventListener("change", (e) => {
         modalSelect.value = e.target.value;
+        settingsSelect.value = e.target.value;
+        defaultTodoEntity = e.target.value;
+        saveConfigSettingsSilently();
     });
 }
 
@@ -858,5 +873,63 @@ async function deletePantryItem(name) {
         await loadPantry();
     } catch (e) {
         showAlert(e.message, "error");
+    }
+}
+
+async function saveConfigSettings() {
+    const calendar = document.getElementById("settings-calendar-select").value;
+    const todo = document.getElementById("settings-todo-select").value;
+    
+    try {
+        const response = await fetch("./api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                default_calendar: calendar,
+                default_shopping_list: todo
+            })
+        });
+        
+        if (!response.ok) throw new Error("Fehler beim Speichern der Einstellungen");
+        
+        defaultCalendarEntity = calendar;
+        defaultTodoEntity = todo;
+        
+        // Sync recipes tab select & modal select
+        const defaultSelect = document.getElementById("default-todo-select");
+        if (defaultSelect && todo) defaultSelect.value = todo;
+        const modalTodoSelect = document.getElementById("modal-todo-select");
+        if (modalTodoSelect && todo) modalTodoSelect.value = todo;
+        const modalCalSelect = document.getElementById("modal-calendar-select");
+        if (modalCalSelect && calendar) modalCalSelect.value = calendar;
+        
+        showAlert("Standard-Einstellungen erfolgreich gespeichert!", "success");
+    } catch (e) {
+        showAlert(e.message, "error");
+    }
+}
+
+async function saveConfigSettingsSilently() {
+    const calendar = document.getElementById("settings-calendar-select").value;
+    const todo = document.getElementById("settings-todo-select").value;
+    
+    try {
+        await fetch("./api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                default_calendar: calendar,
+                default_shopping_list: todo
+            })
+        });
+        defaultCalendarEntity = calendar;
+        defaultTodoEntity = todo;
+        
+        const modalTodoSelect = document.getElementById("modal-todo-select");
+        if (modalTodoSelect && todo) modalTodoSelect.value = todo;
+        const modalCalSelect = document.getElementById("modal-calendar-select");
+        if (modalCalSelect && calendar) modalCalSelect.value = calendar;
+    } catch (e) {
+        console.error("Fehler beim stillen Speichern der Einstellungen:", e);
     }
 }
