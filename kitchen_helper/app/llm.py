@@ -34,6 +34,37 @@ def load_config() -> Dict[str, Any]:
         except Exception as e:
             print(f"Fehler beim Laden der options.json: {e}")
 
+    # Fallback/Abwärtskompatibilität: Falls use_ha_conversation konfiguriert ist, llm_provider auf homeassistant zwingen
+    if config.get("use_ha_conversation") or config.get("llm_provider") == "homeassistant":
+        config["llm_provider"] = "homeassistant"
+        config["use_ha_conversation"] = True
+
+    # Deaktiviere die anderen AI-Anbieter basierend auf der Auswahl
+    provider = config["llm_provider"]
+    if provider == "openai":
+        config["anthropic_api_key"] = ""
+        config["anthropic_model"] = ""
+        config["use_ha_conversation"] = False
+        config["ha_conversation_entity"] = ""
+    elif provider == "anthropic":
+        config["openai_api_key"] = ""
+        config["openai_model"] = ""
+        config["custom_openai_url"] = ""
+        config["use_ha_conversation"] = False
+        config["ha_conversation_entity"] = ""
+    elif provider == "openai_compatible":
+        config["anthropic_api_key"] = ""
+        config["anthropic_model"] = ""
+        config["use_ha_conversation"] = False
+        config["ha_conversation_entity"] = ""
+    elif provider == "homeassistant":
+        config["openai_api_key"] = ""
+        config["openai_model"] = ""
+        config["custom_openai_url"] = ""
+        config["anthropic_api_key"] = ""
+        config["anthropic_model"] = ""
+        config["use_ha_conversation"] = True
+
     return config
 
 
@@ -169,7 +200,7 @@ def generate_recipe_via_ai(
     system_prompt, user_prompt = generate_recipe_prompt(prompt_text, dietary, style, servings)
 
     # Option: verwende vorhandene Home Assistant Conversation-Entity falls konfiguriert
-    if config.get("use_ha_conversation"):
+    if provider == "homeassistant":
         entity = config.get("ha_conversation_entity") or "conversation.google_ai_conversation"
         # Kombiniere System- und User-Prompt zu einem String für die HA-Konversation
         combined = system_prompt + "\n\n" + user_prompt

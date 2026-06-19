@@ -1,5 +1,5 @@
 name: "Küchenhelfer"
-version: "1.0.0"
+version: "1.1.0"
 slug: "kitchen_helper"
 description: "Rezept-Datenbank mit AI-Skalierung, LLM-Rezeptgenerierung, Wochenplaner (HA Kalender) und Einkaufslisten-Schnittstelle."
 url: "https://github.com/ChertiGER/hoas_kitchen_helper"
@@ -23,14 +23,12 @@ options:
   custom_openai_url: ""
   anthropic_api_key: ""
   anthropic_model: "claude-3-5-haiku-latest"
-  use_ha_conversation: false
   ha_conversation_entity: "conversation.google_ai_conversation"
 schema:
-  llm_provider: "list(openai|anthropic|openai_compatible)"
+  llm_provider: "list(openai|anthropic|openai_compatible|homeassistant)"
   openai_api_key: "str?"
   openai_model: "str?"
   custom_openai_url: "str?"
   anthropic_api_key: "str?"
   anthropic_model: "str?"
-  use_ha_conversation: "bool?"
   ha_conversation_entity: "str?"
