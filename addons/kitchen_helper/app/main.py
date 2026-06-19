@@ -1,8 +1,10 @@
 import os
 import base64
+import gc
+import ctypes
 from contextlib import asynccontextmanager
 from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, Query, status, File, UploadFile
+from fastapi import FastAPI, HTTPException, Query, status, File, UploadFile, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -41,15 +43,41 @@ from .llm import (
 async def lifespan(app: FastAPI):
     # Initialisiere die Datenbank beim Start
     init_db()
+    # Begrenze den AnyIO-Thread-Pool, um RAM auf dem Raspberry Pi zu sparen
+    try:
+        from anyio.to_thread import current_default_thread_limiter
+        limiter = current_default_thread_limiter()
+        limiter.total_tokens = 4
+    except Exception as e:
+        print(f"Konnte AnyIO Thread-Limit nicht setzen: {e}")
     yield
 
 
 app = FastAPI(
     title="Küchenhelfer API",
     description="Backend-Dienste für das Küchenhelfer Home Assistant Addon",
-    version="1.6.0",
+    version="1.6.1",
     lifespan=lifespan
 )
+
+
+@app.middleware("http")
+async def memory_cleanup_middleware(request: Request, call_next):
+    response = await call_next(request)
+    # Nach jedem Request Speicher aufräumen
+    gc.collect()
+    try:
+        # malloc_trim ist eine glibc-Funktion auf Linux (Raspberry Pi)
+        try:
+            libc = ctypes.CDLL("libc.so.6")
+        except OSError:
+            libc = ctypes.CDLL(None)
+        
+        if hasattr(libc, "malloc_trim"):
+            libc.malloc_trim(0)
+    except Exception:
+        pass
+    return response
 
 # API Schemas
 class PantryItem(BaseModel):

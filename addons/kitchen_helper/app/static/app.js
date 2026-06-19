@@ -1050,6 +1050,53 @@ function switchAiMode(modeId) {
         activeBtn.classList.add("bg-amber-500", "text-slate-950", "shadow-sm");
     }
 }
+function compressAndResizeImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+                
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                        const compressedFile = new File([blob], newFileName, {
+                            type: "image/jpeg",
+                            lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                    } else {
+                        reject(new Error("Canvas conversion failed"));
+                    }
+                }, "image/jpeg", quality);
+            };
+            img.onerror = () => reject(new Error("Image load failed"));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error("File read failed"));
+        reader.readAsDataURL(file);
+    });
+}
 
 // ---- VISION / FOTO HANDLERS ----
 function previewUploadedImage(event) {
@@ -1151,8 +1198,19 @@ async function importRecipeImageBtn() {
     loader.classList.remove("hidden");
     
     const fileInput = document.getElementById("ai-image-file");
+    let fileToUpload = fileInput.files[0];
+    
+    try {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Komprimiere Bild...';
+        fileToUpload = await compressAndResizeImage(fileToUpload);
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Lese Rezept...';
+    } catch (err) {
+        console.warn("Client-side compression failed, uploading original:", err);
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Lese Rezept...';
+    }
+    
     const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", fileToUpload);
     
     try {
         const response = await fetch("./api/recipes/import-image", {
@@ -1196,8 +1254,19 @@ async function analyseLeftoversImageBtn() {
     loader.classList.remove("hidden");
     
     const fileInput = document.getElementById("ai-image-file");
+    let fileToUpload = fileInput.files[0];
+    
+    try {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Komprimiere Bild...';
+        fileToUpload = await compressAndResizeImage(fileToUpload);
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Suche Rezepte...';
+    } catch (err) {
+        console.warn("Client-side compression failed, uploading original:", err);
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Suche Rezepte...';
+    }
+    
     const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", fileToUpload);
     
     try {
         const response = await fetch("./api/recipes/visual-leftovers", {
