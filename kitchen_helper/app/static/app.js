@@ -364,6 +364,9 @@ async function openRecipeModal(recipeId) {
         // Zutaten rendern (mit Skalierung = 1.0 zu Beginn)
         renderModalIngredients();
         
+        // Datum im Kalenderplaner immer auf heute aktualisieren
+        document.getElementById("modal-plan-date").value = new Date().toISOString().split('T')[0];
+        
         // Modal anzeigen
         document.getElementById("recipe-modal").classList.remove("hidden");
     } catch (e) {
