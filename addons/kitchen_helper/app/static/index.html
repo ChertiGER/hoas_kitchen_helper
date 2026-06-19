@@ -82,7 +82,7 @@
                     <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>KI-Chefkoch
                 </button>
                 <button onclick="switchTab('settings-tab')" id="btn-settings-tab" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-gears mr-2"></i>HA Status
+                    <i class="fa-solid fa-gears mr-2"></i>Konfiguration
                 </button>
             </nav>
         </div>
@@ -301,55 +301,99 @@
             </div>
         </div>
 
-        <!-- TAB: HA STATUS / SYSTEMINFO -->
-        <div id="settings-tab" class="tab-content hidden max-w-2xl mx-auto space-y-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-lg p-6 space-y-6">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2 pb-3 border-b border-slate-800">
-                    <i class="fa-solid fa-circle-nodes text-amber-500"></i> Home Assistant Integration & Status
-                </h2>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
-                        <div id="ha-status-icon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-red-500/10 text-red-400 border border-red-500/20">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">API Verbindung</span>
-                            <span id="ha-status-text" class="text-sm font-bold text-red-400">Trennlinie</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
-                        <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl flex items-center justify-center text-xl">
-                            <i class="fa-solid fa-key"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Supervisor Token</span>
-                            <span id="ha-token-text" class="text-sm font-bold text-amber-400">Nicht verfügbar</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gefundene Kalender-Entitäten</h3>
-                    <div id="settings-calendars-list" class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-1 max-h-[150px] overflow-y-auto">
-                        <p class="text-slate-500 text-sm p-2">Keine Kalender gefunden oder API offline.</p>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gefundene To-Do-Listen (Einkaufslisten)</h3>
-                    <div id="settings-todos-list" class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-1 max-h-[150px] overflow-y-auto">
-                        <p class="text-slate-500 text-sm p-2">Keine To-Do-Listen gefunden oder API offline.</p>
-                    </div>
-                </div>
-
-                <div class="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-2">
-                    <p class="font-bold text-amber-400/90 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-info"></i> Wie funktioniert die Integration?
+        <!-- TAB: KONFIGURATION -->
+        <div id="settings-tab" class="tab-content hidden max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Linke Spalte: Standardvorrat (Pantry) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-lg p-6 space-y-6">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2 pb-3 border-b border-slate-800">
+                        <i class="fa-solid fa-basket-shopping text-amber-500"></i> Standardvorrat (Immer daheim)
+                    </h2>
+                    
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Definiere hier Zutaten, die du standardmäßig immer zu Hause hast (z. B. spezielle Nudeln, Lieblingsgewürze oder Backzutaten). Diese werden im Rezept-Detail automatisch als Vorrat markiert und beim Export auf die Einkaufsliste standardmäßig nicht ausgewählt.
                     </p>
-                    <p>Dieses Addon läuft als nativer Dienst innerhalb deines Home Assistant Systems. Sobald es gestartet wird, verbindet es sich automatisch über die Supervisor API mit deinem Home Assistant Core. Es liest die Kalender und Einkaufslisten (To-Dos) aus, um Rezepte direkt einzuplanen und Zutaten hinzuzufügen.</p>
-                    <p>Stelle sicher, dass in den Addon-Optionen im Home Assistant Dashboard dein gewünschter KI-Modell-Anbieter eingetragen ist (z.B. OpenAI mit API-Key), um Rezepte automatisch generieren zu können.</p>
+
+                    <!-- Add Pantry Item Form -->
+                    <div class="flex gap-2">
+                        <input type="text" id="pantry-input" placeholder="Zutat z.B. Reis, Basilikum..." class="flex-1 bg-slate-950 text-slate-200 px-3.5 py-2 rounded-xl border border-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm placeholder-slate-600">
+                        <button onclick="addPantryItem()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Hinzufügen
+                        </button>
+                    </div>
+
+                    <!-- Pantry List -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Eigene Standardzutaten</h3>
+                        <div id="pantry-list" class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-1.5 max-h-[220px] overflow-y-auto">
+                            <p class="text-slate-500 text-xs p-2">Vorrat wird geladen...</p>
+                        </div>
+                    </div>
+
+                    <!-- Deutsches Standard-Repertoire Info -->
+                    <div class="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-2">
+                        <p class="font-bold text-amber-400/90 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info"></i> Deutsches Standard-Repertoire
+                        </p>
+                        <p>Folgende Zutaten gehören automatisch zum Repertoire einer deutschen Familienküche und werden ohne manuelle Konfiguration als Vorrat markiert:</p>
+                        <ul class="list-disc pl-4 space-y-1 text-slate-500">
+                            <li>Gewürze (Salz, Pfeffer, Zucker, Paprikapulver, Zimt, Muskat...)</li>
+                            <li>Saucen & Fette (Essig, Speiseöle, Butter, Senf, Tomatenmark...)</li>
+                            <li>Milchprodukte & Eier (Milch, Quark, Schmand, Sahne, Eier)</li>
+                            <li>Backzutaten (Mehl, Hefe, Backpulver, Speisestärke...)</li>
+                            <li>Frische Basics (Wasser, Zwiebeln, Knoblauch, Ingwer)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Rechte Spalte: Home Assistant Integration & Status -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-lg p-6 space-y-6">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2 pb-3 border-b border-slate-800">
+                        <i class="fa-solid fa-circle-nodes text-amber-500"></i> Home Assistant Integration & Status
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <div id="ha-status-icon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-red-500/10 text-red-400 border border-red-500/20">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">API Verbindung</span>
+                                <span id="ha-status-text" class="text-sm font-bold text-red-400">Trennlinie</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Supervisor Token</span>
+                                <span id="ha-token-text" class="text-sm font-bold text-amber-400">Nicht verfügbar</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gefundene Kalender-Entitäten</h3>
+                        <div id="settings-calendars-list" class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-1 max-h-[120px] overflow-y-auto">
+                            <p class="text-slate-500 text-sm p-2">Keine Kalender gefunden oder API offline.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gefundene To-Do-Listen (Einkaufslisten)</h3>
+                        <div id="settings-todos-list" class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-1 max-h-[120px] overflow-y-auto">
+                            <p class="text-slate-500 text-sm p-2">Keine To-Do-Listen gefunden oder API offline.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-slate-400 leading-relaxed space-y-2">
+                        <p class="font-bold text-amber-400/90 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info"></i> Wie funktioniert die Integration?
+                        </p>
+                        <p>Dieses Addon läuft als nativer Dienst innerhalb deines Home Assistant Systems. Sobald es gestartet wird, verbindet es sich automatisch über die Supervisor API mit deinem Home Assistant Core. Es liest die Kalender und Einkaufslisten (To-Dos) aus, um Rezepte direkt einzuplanen und Zutaten hinzuzufügen.</p>
+                    </div>
                 </div>
             </div>
         </div>

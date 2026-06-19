@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Daten laden
     loadRecipes();
     loadSystemStatus();
+    loadPantry();
     
     // Heutiges Datum als Standardwert für den Kalenderplaner eintragen
     const today = new Date().toISOString().split('T')[0];
@@ -359,14 +360,22 @@ function renderModalIngredients() {
         const unitText = ing.unit ? ` ${ing.unit}` : "";
         const formattedAmountString = amountText ? `<span class="font-extrabold text-white text-xs">${amountText}${unitText}</span>` : `<span class="font-bold text-slate-400 text-xs">${ing.unit || ''}</span>`;
         
+        const isAlwaysAtHome = ing.always_at_home === true;
+        const checkboxChecked = isAlwaysAtHome ? "" : "checked";
+        const opacityClass = isAlwaysAtHome ? "opacity-50 hover:opacity-100 transition-opacity" : "";
+        const badgeHtml = isAlwaysAtHome ? `<span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold ml-1">Vorrat</span>` : "";
+        
         return `
-            <label class="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-slate-900 cursor-pointer border border-transparent hover:border-slate-800 transition">
-                <input type="checkbox" checked class="modal-ing-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-4 h-4" 
+            <label class="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-slate-900 cursor-pointer border border-transparent hover:border-slate-800 transition ${opacityClass}">
+                <input type="checkbox" ${checkboxChecked} class="modal-ing-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-4 h-4" 
                     data-name="${ing.name}" 
                     data-amount="${finalAmount || ''}" 
                     data-unit="${ing.unit || ''}">
                 <div class="text-xs flex items-center gap-1.5 select-none w-full justify-between">
-                    <span class="text-slate-300 font-medium">${ing.name}</span>
+                    <span class="text-slate-300 font-medium flex items-center gap-1">
+                        ${ing.name}
+                        ${badgeHtml}
+                    </span>
                     ${formattedAmountString}
                 </div>
             </label>
@@ -777,4 +786,77 @@ function populateTodoDropdowns() {
     defaultSelect.addEventListener("change", (e) => {
         modalSelect.value = e.target.value;
     });
+}
+
+// ---- PANTRY / STANDARDVORRAT VERWALTUNG ----
+let pantryItems = [];
+
+async function loadPantry() {
+    try {
+        const response = await fetch("./api/pantry");
+        if (!response.ok) throw new Error("Fehler beim Laden des Standardvorrats");
+        pantryItems = await response.json();
+        renderPantryList();
+    } catch (e) {
+        console.error("Fehler beim Laden der Pantry:", e);
+    }
+}
+
+function renderPantryList() {
+    const list = document.getElementById("pantry-list");
+    if (!list) return;
+    
+    if (pantryItems.length === 0) {
+        list.innerHTML = '<p class="text-slate-500 text-xs p-2">Keine eigenen Standardzutaten definiert.</p>';
+        return;
+    }
+    
+    list.innerHTML = pantryItems.map(item => `
+        <div class="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-slate-900/50 text-xs border border-slate-800/50">
+            <span class="text-slate-300 font-semibold">${item}</span>
+            <button onclick="deletePantryItem('${item.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/10 rounded transition-all">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    `).join("");
+}
+
+async function addPantryItem() {
+    const input = document.getElementById("pantry-input");
+    const name = input.value.trim();
+    if (!name) return;
+    
+    try {
+        const response = await fetch("./api/pantry", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name })
+        });
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Konnte Zutat nicht hinzufügen");
+        }
+        
+        input.value = "";
+        showAlert(`"${name}" zum Standardvorrat hinzugefügt.`, "success");
+        await loadPantry();
+    } catch (e) {
+        showAlert(e.message, "error");
+    }
+}
+
+async function deletePantryItem(name) {
+    try {
+        const response = await fetch(`./api/pantry?name=${encodeURIComponent(name)}`, {
+            method: "DELETE"
+        });
+        
+        if (!response.ok) throw new Error("Fehler beim Löschen");
+        
+        showAlert(`"${name}" aus dem Standardvorrat entfernt.`, "success");
+        await loadPantry();
+    } catch (e) {
+        showAlert(e.message, "error");
+    }
 }

@@ -12,7 +12,11 @@ from .database import (
     get_recipe_by_id,
     create_recipe,
     update_recipe,
-    delete_recipe
+    delete_recipe,
+    get_pantry_ingredients,
+    add_pantry_ingredient,
+    delete_pantry_ingredient,
+    is_staple_ingredient
 )
 from .ha_api import (
     get_calendars,
@@ -35,11 +39,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Küchenhelfer API",
     description="Backend-Dienste für das Küchenhelfer Home Assistant Addon",
-    version="1.2.4",
+    version="1.3.0",
     lifespan=lifespan
 )
 
 # API Schemas
+class PantryItem(BaseModel):
+    name: str
+
+
 class IngredientSchema(BaseModel):
     name: str
     amount: Optional[float] = None
@@ -78,7 +86,15 @@ class ShoppingListRequest(BaseModel):
 
 @app.get("/api/recipes", response_model=List[Dict[str, Any]])
 def read_recipes(search: Optional[str] = Query(None, description="Suche nach Rezepttitel oder Beschreibung")):
-    return get_all_recipes(search)
+    recipes = get_all_recipes(search)
+    try:
+        pantry = get_pantry_ingredients()
+    except Exception:
+        pantry = []
+    for r in recipes:
+        for ing in r.get("ingredients", []):
+            ing["always_at_home"] = is_staple_ingredient(ing["name"], pantry)
+    return recipes
 
 
 @app.get("/api/recipes/{recipe_id}", response_model=Dict[str, Any])
@@ -86,7 +102,43 @@ def read_recipe(recipe_id: int):
     recipe = get_recipe_by_id(recipe_id)
     if not recipe:
         raise HTTPException(status_code=404, detail="Rezept nicht gefunden")
+    try:
+        pantry = get_pantry_ingredients()
+    except Exception:
+        pantry = []
+    for ing in recipe.get("ingredients", []):
+        ing["always_at_home"] = is_staple_ingredient(ing["name"], pantry)
     return recipe
+
+
+# ---- Pantry / Standardvorrat Endpunkte ----
+
+@app.get("/api/pantry", response_model=List[str])
+def read_pantry():
+    try:
+        return get_pantry_ingredients()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden des Standardvorrats: {e}")
+
+
+@app.post("/api/pantry", status_code=status.HTTP_201_CREATED)
+def create_pantry_item(item: PantryItem):
+    if not item.name.strip():
+        raise HTTPException(status_code=400, detail="Name darf nicht leer sein.")
+    success = add_pantry_ingredient(item.name)
+    if not success:
+        raise HTTPException(status_code=400, detail=f"Zutat '{item.name}' ist bereits im Standardvorrat.")
+    return {"message": "Zutat erfolgreich hinzugefügt"}
+
+
+@app.delete("/api/pantry", status_code=status.HTTP_200_OK)
+def remove_pantry_item(name: str = Query(..., description="Name der zu löschenden Zutat")):
+    if not name.strip():
+        raise HTTPException(status_code=400, detail="Name darf nicht leer sein.")
+    deleted = delete_pantry_ingredient(name)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Zutat '{name}' nicht im Standardvorrat gefunden.")
+    return {"message": "Zutat erfolgreich gelöscht"}
 
 
 @app.post("/api/recipes", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
