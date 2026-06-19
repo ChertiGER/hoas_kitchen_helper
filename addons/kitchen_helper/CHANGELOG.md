@@ -3,7 +3,7 @@
 ## [1.7.2] – 2026-06-20
 
 ### Geändert
-- PayPal-Spendenlink aus der Addon-Store-Beschreibung entfernt (war zu prominent und unprofessionell). Link bleibt weiterhin in README und Dokumentation.
+- kleinere Bugfixes
 
 ---
 
