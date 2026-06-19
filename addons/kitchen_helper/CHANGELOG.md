@@ -5,6 +5,14 @@ Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.0.0
 
 ---
 
+## [1.7.1] – 2026-06-20
+
+### Behoben
+- Kalender-Datum im Rezept-Einplan-Dialog zeigte immer das Datum des letzten Seitenladevorgangs anstelle des heutigen Datums.
+- Langer Rezepttitel auf der Lovelace-Karte wurde abgeschnitten statt umgebrochen.
+
+---
+
 ## [1.7.0] – 2026-06-20
 
 ### Neu

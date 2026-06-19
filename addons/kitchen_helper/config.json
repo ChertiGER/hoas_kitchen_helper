@@ -1,6 +1,6 @@
 {
   "name": "Küchenhelfer",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "slug": "kitchen_helper",
   "description": "ChertiGER/hoas_kitchen_helper | Rezept-Datenbank mit KI-Generierung, Kalenderplanung und Einkaufsliste. Support: https://paypal.me/YHolz",
   "url": "https://github.com/ChertiGER/hoas_kitchen_helper",
