@@ -3,7 +3,6 @@ import json
 import httpx
 import re
 from typing import Dict, Any, Optional
-from .ha_api import call_conversation_entity
 
 OPTIONS_PATH = "/data/options.json"
 
@@ -20,8 +19,8 @@ def load_config() -> Dict[str, Any]:
         "custom_openai_url": os.environ.get("CUSTOM_OPENAI_URL", ""),
         "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
         "anthropic_model": os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-latest"),
-        "use_ha_conversation": os.environ.get("USE_HA_CONVERSATION", "false").lower() in ("1","true","yes"),
-        "ha_conversation_entity": os.environ.get("HA_CONVERSATION_ENTITY", "conversation.google_ai_conversation"),
+        "gemini_api_key": os.environ.get("GEMINI_API_KEY", ""),
+        "gemini_model": os.environ.get("GEMINI_MODEL", "gemini-1.5-flash"),
         "default_calendar": os.environ.get("DEFAULT_CALENDAR", ""),
         "default_shopping_list": os.environ.get("DEFAULT_SHOPPING_LIST", ""),
     }
@@ -36,36 +35,30 @@ def load_config() -> Dict[str, Any]:
         except Exception as e:
             print(f"Fehler beim Laden der options.json: {e}")
 
-    # Fallback/Abwärtskompatibilität: Falls use_ha_conversation konfiguriert ist, llm_provider auf homeassistant zwingen
-    if config.get("use_ha_conversation") or config.get("llm_provider") == "homeassistant":
-        config["llm_provider"] = "homeassistant"
-        config["use_ha_conversation"] = True
-
     # Deaktiviere die anderen AI-Anbieter basierend auf der Auswahl
     provider = config["llm_provider"]
     if provider == "openai":
         config["anthropic_api_key"] = ""
         config["anthropic_model"] = ""
-        config["use_ha_conversation"] = False
-        config["ha_conversation_entity"] = ""
+        config["gemini_api_key"] = ""
+        config["gemini_model"] = ""
     elif provider == "anthropic":
         config["openai_api_key"] = ""
         config["openai_model"] = ""
         config["custom_openai_url"] = ""
-        config["use_ha_conversation"] = False
-        config["ha_conversation_entity"] = ""
+        config["gemini_api_key"] = ""
+        config["gemini_model"] = ""
     elif provider == "openai_compatible":
         config["anthropic_api_key"] = ""
         config["anthropic_model"] = ""
-        config["use_ha_conversation"] = False
-        config["ha_conversation_entity"] = ""
-    elif provider == "homeassistant":
+        config["gemini_api_key"] = ""
+        config["gemini_model"] = ""
+    elif provider == "gemini":
         config["openai_api_key"] = ""
         config["openai_model"] = ""
         config["custom_openai_url"] = ""
         config["anthropic_api_key"] = ""
         config["anthropic_model"] = ""
-        config["use_ha_conversation"] = True
 
     return config
 
@@ -189,6 +182,41 @@ def call_anthropic(config: Dict[str, Any], system_prompt: str, user_prompt: str)
     return result["content"][0]["text"]
 
 
+def call_gemini(config: Dict[str, Any], system_prompt: str, user_prompt: str) -> str:
+    """Ruft die Google Gemini-API auf."""
+    api_key = config["gemini_api_key"]
+    model = config["gemini_model"]
+
+    if not api_key:
+        raise ValueError("Gemini API Key ist nicht konfiguriert.")
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key
+    }
+
+    # Gemini 1.5/2.0 systemInstruction und contents Payload
+    payload = {
+        "contents": [{"parts": [{"text": user_prompt}]}],
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "generationConfig": {
+            "responseMimeType": "application/json"
+        }
+    }
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    response = httpx.post(url, headers=headers, json=payload, timeout=45.0)
+
+    if response.status_code != 200:
+        raise Exception(f"Gemini API Fehler ({response.status_code}): {response.text}")
+
+    result = response.json()
+    try:
+        return result["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        raise Exception(f"Unerwartetes Gemini API Antwortformat: {result}")
+
+
 def generate_recipe_via_ai(
     prompt_text: str,
     dietary: str = "keine",
@@ -201,24 +229,16 @@ def generate_recipe_via_ai(
 
     system_prompt, user_prompt = generate_recipe_prompt(prompt_text, dietary, style, servings)
 
-    # Option: verwende vorhandene Home Assistant Conversation-Entity falls konfiguriert
-    if provider == "homeassistant":
-        entity = config.get("ha_conversation_entity") or "conversation.google_ai_conversation"
-        # Kombiniere System- und User-Prompt zu einem String für die HA-Konversation
-        combined = system_prompt + "\n\n" + user_prompt
-        raw = call_conversation_entity(entity, combined)
-        if not raw:
-            raise Exception("Keine Antwort von der Home Assistant Conversation-Entity erhalten.")
-        raw_response = raw
+    if provider == "openai":
+        raw_response = call_openai(config, system_prompt, user_prompt)
+    elif provider == "openai_compatible":
+        raw_response = call_openai(config, system_prompt, user_prompt)
+    elif provider == "anthropic":
+        raw_response = call_anthropic(config, system_prompt, user_prompt)
+    elif provider == "gemini":
+        raw_response = call_gemini(config, system_prompt, user_prompt)
     else:
-        if provider == "openai":
-            raw_response = call_openai(config, system_prompt, user_prompt)
-        elif provider == "openai_compatible":
-            raw_response = call_openai(config, system_prompt, user_prompt)
-        elif provider == "anthropic":
-            raw_response = call_anthropic(config, system_prompt, user_prompt)
-        else:
-            raise ValueError(f"Unbekannter LLM-Provider: {provider}")
+        raise ValueError(f"Unbekannter LLM-Provider: {provider}")
 
     cleaned_response = clean_json_response(raw_response)
 

@@ -1,4 +1,4 @@
-# 🍳 Küchenhelfer Addon v1.1.1
+# 🍳 Küchenhelfer Addon v1.2.0
 
 **Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung, Einkaufslisten und KI-Rezeptgenerierung in einem übersichtlichen Dashboard.**
 
@@ -6,7 +6,7 @@
 
 ## ✨ Features
 - **Rezeptdatenbank**: Lokale Verwaltung (SQLite) mit automatischer Zutatenskalierung.
-- **KI-Chefkoch**: Generiere Rezepte per OpenAI, Anthropic, OpenAI-kompatiblen APIs (z.B. Ollama) oder direkt über eine Home Assistant Conversation Entity (z.B. Google Generative AI).
+- **KI-Chefkoch**: Generiere Rezepte per OpenAI, Anthropic, OpenAI-kompatiblen APIs (z.B. Ollama) oder Google Gemini API.
 - **HA-Integration**: Rezepte direkt in den HA-Kalender eintragen und Zutaten auf die Einkaufsliste setzen.
 - **Modernes UI**: Schnelles und responsives Design basierend auf Tailwind CSS.
 
@@ -28,7 +28,7 @@
 | **`openai`** | OpenAI (GPT Modelle) | `openai_api_key`, `openai_model` |
 | **`anthropic`** | Anthropic (Claude Modelle) | `anthropic_api_key`, `anthropic_model` |
 | **`openai_compatible`** | Eigene APIs (Ollama, Azure, etc.) | `openai_api_key`, `openai_model`, `custom_openai_url` |
-| **`homeassistant`** | HA eigene KI-Konversation | `ha_conversation_entity` |
+| **`gemini`** | Google Gemini | `gemini_api_key`, `gemini_model` |
 
 ### Optionale Standard-Einstellungen (Kalender & Einkaufsliste)
 Du kannst auch Standard-Entitäten für deinen Kalender und deine Einkaufsliste definieren, damit diese in der App direkt vorausgewählt sind:
