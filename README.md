@@ -164,5 +164,13 @@ Oder direkt: `https://dein-ha-domain/api/hassio/app/kitchen_helper`
 
 ---
 
-Weitere Informationen zum Addon: siehe `addons/kitchen_helper/config.json` und `addons/kitchen_helper/run.sh`.
+---
+
+## Lizenz
+
+Dieses Projekt steht unter der **GNU General Public License v3.0** — siehe [LICENSE](LICENSE) für Details.
+
+**Kurz gesagt:** Du kannst diesen Code frei verwenden, modifizieren und weitergeben — solange deine Änderungen auch unter GPL3.0 lizenziert sind.
+
+Weitere Infos: [gnu.org/licenses/gpl-3.0](https://www.gnu.org/licenses/gpl-3.0.html)
 
