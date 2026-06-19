@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Küchenhelfer API",
     description="Backend-Dienste für das Küchenhelfer Home Assistant Addon",
-    version="1.1.0",
+    version="1.1.1",
     lifespan=lifespan
 )
 
@@ -139,9 +139,13 @@ def generate_ai_recipe(req: GenerateRecipeRequest):
 @app.get("/api/ha/status")
 def ha_status():
     """Gibt den Status der Home Assistant API-Verbindung zurück."""
+    from .llm import load_config
+    cfg = load_config()
     return {
         "connected": is_ha_available(),
-        "using_token": bool(os.environ.get("SUPERVISOR_TOKEN"))
+        "using_token": bool(os.environ.get("SUPERVISOR_TOKEN")),
+        "default_calendar": cfg.get("default_calendar", ""),
+        "default_shopping_list": cfg.get("default_shopping_list", "")
     }
 
 

@@ -22,6 +22,8 @@ def load_config() -> Dict[str, Any]:
         "anthropic_model": os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-latest"),
         "use_ha_conversation": os.environ.get("USE_HA_CONVERSATION", "false").lower() in ("1","true","yes"),
         "ha_conversation_entity": os.environ.get("HA_CONVERSATION_ENTITY", "conversation.google_ai_conversation"),
+        "default_calendar": os.environ.get("DEFAULT_CALENDAR", ""),
+        "default_shopping_list": os.environ.get("DEFAULT_SHOPPING_LIST", ""),
     }
 
     if os.path.exists(OPTIONS_PATH):
