@@ -1,14 +1,28 @@
-# 🍳 Küchenhelfer Addon v1.2.0
+# 🍳 Küchenhelfer Addon
 
-**Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung, Einkaufslisten und KI-Rezeptgenerierung in einem übersichtlichen Dashboard.**
+**Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung, Einkaufslisten und KI-Rezeptgenerierung in einem übersichtlichen, modernen Dashboard.**
 
 ---
 
-## ✨ Features
-- **Rezeptdatenbank**: Lokale Verwaltung (SQLite) mit automatischer Zutatenskalierung.
-- **KI-Chefkoch**: Generiere Rezepte per OpenAI, Anthropic, OpenAI-kompatiblen APIs (z.B. Ollama) oder Google Gemini API.
-- **HA-Integration**: Rezepte direkt in den HA-Kalender eintragen und Zutaten auf die Einkaufsliste setzen.
-- **Modernes UI**: Schnelles und responsives Design basierend auf Tailwind CSS.
+## ✨ Hauptfunktionen
+
+### 1. Lokale Rezeptdatenbank (SQLite)
+*   **Rezepte verwalten**: Erstelle und bearbeite deine Rezepte komfortabel im Dashboard.
+*   **Intelligente Portionierung**: Ändere die Portionsanzahl eines Rezepts per Klick, und alle Zutatenmengen passen sich automatisch und präzise an.
+*   **Volltextsuche**: Suche blitzschnell nach Rezepttiteln, Beschreibungen oder bestimmten Zutaten.
+
+### 2. KI-Chefkoch (Rezept-Generator)
+*   **Kreative Rezeptgenerierung**: Gib eine Idee oder Zutaten ein, die du im Kühlschrank hast, und lass dir ein passendes Rezept kreieren.
+*   **Individuelle Vorgaben**: Passe das Rezept an deine Ernährungsform (z. B. vegetarisch, vegan, glutenfrei) oder deinen Lieblings-Küchenstil an.
+*   **Direkte Integration**: Nutze wahlweise **Google Gemini**, **OpenAI**, **Anthropic (Claude)** oder andere **OpenAI-kompatible Schnittstellen** (z. B. lokale LLMs über Ollama).
+
+### 3. Wochenplaner & Kalender-Integration
+*   **Menüplanung**: Plane deine Gerichte für die Woche und trage sie direkt in deine Home Assistant-Kalender ein.
+*   **Skalierte Informationen**: Die Rezepte werden automatisch inklusive aller hochgerechneten Zutaten und der Anleitung als ganztägige Kalendereinträge angelegt.
+
+### 4. Smarte Einkaufsliste
+*   **Zutaten auswählen**: Hake im Rezept-Detail genau die Zutaten an, die dir für das Gericht noch fehlen.
+*   **Direkter Export**: Füge die ausgewählten Zutaten mit einem Klick zu deinen Home Assistant To-Do-Listen (z. B. der Standard-Einkaufsliste) hinzu.
 
 ---
 
@@ -16,7 +30,7 @@
 
 ### 1. Repository hinzufügen
 1. Gehe in Home Assistant zu **Einstellungen** → **Add-ons** → **Add-on Store**.
-2. Klicke oben rechts auf das Dreipunkt-Menü **⋮** → **Repositories**.
+2. Klicke oben rechts auf **⋮** → **Repositories**.
 3. Füge folgende URL hinzu: `https://github.com/ChertiGER/hoas_kitchen_helper`
 
 ### 2. Add-on installieren & konfigurieren
@@ -30,34 +44,12 @@
 | **`openai_compatible`** | Eigene APIs (Ollama, Azure, etc.) | `openai_api_key`, `openai_model`, `custom_openai_url` |
 | **`gemini`** | Google Gemini | `gemini_api_key`, `gemini_model` |
 
-### Optionale Standard-Einstellungen (Kalender & Einkaufsliste)
-Du kannst auch Standard-Entitäten für deinen Kalender und deine Einkaufsliste definieren, damit diese in der App direkt vorausgewählt sind:
-- **`default_calendar`**: Die Entity-ID deines gewünschten HA-Kalenders (z.B. `calendar.weekly_meals`).
-- **`default_shopping_list`**: Die Entity-ID deiner HA-To-Do-Liste (z.B. `todo.einkaufsliste`) oder `legacy` für die klassische HA-Einkaufsliste.
-
-*Hinweis: Wenn ein Provider ausgewählt wird, werden alle ungenutzten API-Schlüssel/Optionen der anderen Anbieter in der App automatisch deaktiviert und ignoriert.*
-
-3. Starte das Add-on und greife über die Seitenleiste (Ingress) darauf zu.
+### 3. Optionale Standard-Einstellungen (Kalender & Einkaufsliste)
+Du kannst in der Konfiguration Standard-Entitäten festlegen, damit diese in der App bereits vorausgewählt sind:
+- **`default_calendar`**: Die Entity-ID deines HA-Kalenders (z.B. `calendar.weekly_meals`).
+- **`default_shopping_list`**: Die Entity-ID deiner HA-To-Do-Liste (z.B. `todo.einkaufsliste`) oder `legacy` für die klassische Einkaufsliste.
 
 ---
 
-## 🛠️ Lokale Entwicklung (Schnellstart)
-
-Falls du am Code arbeiten möchtest:
-
-```bash
-# 1. Repository klonen und virtuelles Environment aufsetzen
-git clone https://github.com/ChertiGER/hoas_kitchen_helper.git
-cd hoas_kitchen_helper
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r kitchen_helper/requirements.txt
-
-# 2. Server lokal starten (Port 8000)
-export PYTHONPATH=./kitchen_helper
-uvicorn app.main:app --reload
-```
-
----
-
-## 🛡️ Lizenz & Rechtliches
+## 🛡️ Lizenz
 Dieses Projekt steht unter der **GNU General Public License v3.0** — siehe [LICENSE](LICENSE) für Details.
