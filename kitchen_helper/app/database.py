@@ -33,9 +33,17 @@ def init_db():
         servings INTEGER NOT NULL DEFAULT 4,
         instructions TEXT NOT NULL,
         source TEXT DEFAULT 'Manuell',
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        tags TEXT DEFAULT ''
     );
     """)
+
+    # Migration: Füge 'tags' Spalte hinzu, falls sie in einer älteren Version noch nicht existiert hat
+    try:
+        cursor.execute("ALTER TABLE recipes ADD COLUMN tags TEXT DEFAULT '';")
+    except sqlite3.OperationalError:
+        # Spalte existiert bereits
+        pass
 
     # Zutaten-Tabelle
     cursor.execute("""
@@ -82,7 +90,12 @@ def get_all_recipes(search_query: Optional[str] = None) -> List[Dict[str, Any]]:
     else:
         cursor.execute("SELECT * FROM recipes ORDER BY title ASC")
 
-    recipes = [dict(row) for row in cursor.fetchall()]
+    recipes = []
+    for row in cursor.fetchall():
+        r = dict(row)
+        tags_str = r.get("tags") or ""
+        r["tags"] = [t.strip() for t in tags_str.split(",") if t.strip()]
+        recipes.append(r)
 
     for r in recipes:
         cursor.execute("SELECT name, amount, unit FROM ingredients WHERE recipe_id = ?", (r["id"],))
@@ -105,6 +118,8 @@ def get_recipe_by_id(recipe_id: int) -> Optional[Dict[str, Any]]:
         return None
 
     recipe = dict(row)
+    tags_str = recipe.get("tags") or ""
+    recipe["tags"] = [t.strip() for t in tags_str.split(",") if t.strip()]
 
     cursor.execute("SELECT name, amount, unit FROM ingredients WHERE recipe_id = ?", (recipe_id,))
     recipe["ingredients"] = [dict(row) for row in cursor.fetchall()]
@@ -125,10 +140,12 @@ def create_recipe(recipe_data: Dict[str, Any]) -> Dict[str, Any]:
         instructions = recipe_data["instructions"]
         source = recipe_data.get("source", "Manuell")
         created_at = datetime.now().isoformat()
+        tags_list = recipe_data.get("tags", [])
+        tags_str = ",".join(tags_list)
 
         cursor.execute(
-            "INSERT INTO recipes (title, description, servings, instructions, source, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (title, description, servings, instructions, source, created_at)
+            "INSERT INTO recipes (title, description, servings, instructions, source, created_at, tags) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (title, description, servings, instructions, source, created_at, tags_str)
         )
         recipe_id = cursor.lastrowid
 
@@ -153,6 +170,7 @@ def create_recipe(recipe_data: Dict[str, Any]) -> Dict[str, Any]:
         conn.commit()
         recipe_data["id"] = recipe_id
         recipe_data["created_at"] = created_at
+        recipe_data["tags"] = tags_list
         return recipe_data
     except Exception as e:
         conn.rollback()
@@ -178,10 +196,12 @@ def update_recipe(recipe_id: int, recipe_data: Dict[str, Any]) -> Optional[Dict[
         servings = recipe_data.get("servings", 4)
         instructions = recipe_data["instructions"]
         source = recipe_data.get("source", "Manuell")
+        tags_list = recipe_data.get("tags", [])
+        tags_str = ",".join(tags_list)
 
         cursor.execute(
-            "UPDATE recipes SET title = ?, description = ?, servings = ?, instructions = ?, source = ? WHERE id = ?",
-            (title, description, servings, instructions, source, recipe_id)
+            "UPDATE recipes SET title = ?, description = ?, servings = ?, instructions = ?, source = ?, tags = ? WHERE id = ?",
+            (title, description, servings, instructions, source, tags_str, recipe_id)
         )
 
         # Alte Zutaten löschen und neu anlegen (einfachster Weg für Updates)
