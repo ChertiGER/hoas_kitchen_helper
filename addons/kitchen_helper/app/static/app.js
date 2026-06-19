@@ -5,6 +5,8 @@ let todoLists = [];
 let currentModalRecipe = null;
 let currentModalServings = 4;
 let lastGeneratedRecipe = null;
+let defaultCalendarEntity = "";
+let defaultTodoEntity = "";
 
 // Initialisierung bei Laden der Seite
 document.addEventListener("DOMContentLoaded", () => {
@@ -658,6 +660,9 @@ async function loadSystemStatus() {
         
         const status = await response.json();
         
+        defaultCalendarEntity = status.default_calendar || "";
+        defaultTodoEntity = status.default_shopping_list || "";
+        
         const statusIcon = document.getElementById("ha-status-icon");
         const statusText = document.getElementById("ha-status-text");
         const tokenText = document.getElementById("ha-token-text");
@@ -723,6 +728,10 @@ function populateCalendarsDropdowns() {
     modalSelect.innerHTML = calendars.map(cal => `
         <option value="${cal.entity_id}">${cal.name}</option>
     `).join("");
+
+    if (defaultCalendarEntity && calendars.some(cal => cal.entity_id === defaultCalendarEntity)) {
+        modalSelect.value = defaultCalendarEntity;
+    }
 }
 
 function populateTodoDropdowns() {
@@ -749,14 +758,19 @@ function populateTodoDropdowns() {
     modalSelect.innerHTML = selectHtml;
     defaultSelect.innerHTML = selectHtml;
     
-    // Standardwert für defaultSelect setzen, falls "todo.shopping_list" vorhanden ist
-    const hasShoppingList = allOptions.find(o => o.entity_id === "todo.shopping_list");
-    if (hasShoppingList) {
-        defaultSelect.value = "todo.shopping_list";
-        modalSelect.value = "todo.shopping_list";
+    // Standardwert für defaultSelect/modalSelect setzen
+    if (defaultTodoEntity && allOptions.some(o => o.entity_id === defaultTodoEntity)) {
+        defaultSelect.value = defaultTodoEntity;
+        modalSelect.value = defaultTodoEntity;
     } else {
-        defaultSelect.value = "legacy";
-        modalSelect.value = "legacy";
+        const hasShoppingList = allOptions.find(o => o.entity_id === "todo.shopping_list");
+        if (hasShoppingList) {
+            defaultSelect.value = "todo.shopping_list";
+            modalSelect.value = "todo.shopping_list";
+        } else {
+            defaultSelect.value = "legacy";
+            modalSelect.value = "legacy";
+        }
     }
     
     // Wenn defaultSelect geändert wird, ändere auch den Wert im Modal

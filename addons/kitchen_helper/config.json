@@ -1,6 +1,6 @@
 {
   "name": "Küchenhelfer",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "slug": "kitchen_helper",
   "description": "Rezept-Datenbank mit KI-Generierung, Kalenderplanung und Einkaufsliste für Home Assistant.",
   "url": "https://github.com/ChertiGER/hoas_kitchen_helper",

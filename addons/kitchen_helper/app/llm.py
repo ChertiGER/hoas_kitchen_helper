@@ -1,78 +1,254 @@
 import os
 import json
 import httpx
-from typing import Optional, Dict, Any
+import re
+from typing import Dict, Any, Optional
 
-SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN")
-USE_HA_CONVERSATION = os.environ.get("USE_HA_CONVERSATION", "false").lower() in ("1", "true", "yes")
-HA_CONVERSATION_ENTITY = os.environ.get("HA_CONVERSATION_ENTITY", "conversation.google_ai_conversation")
-HOMEASSISTANT_URL = os.environ.get("HOMEASSISTANT_URL", "http://supervisor/core/api")
+OPTIONS_PATH = "/data/options.json"
+
+
+def load_config() -> Dict[str, Any]:
+    """
+    Lädt die Addon-Konfiguration von Home Assistant.
+    Falls nicht vorhanden (lokale Entwicklung), wird auf Umgebungsvariablen zurückgegriffen.
+    """
+    config = {
+        "llm_provider": os.environ.get("LLM_PROVIDER", "openai"),
+        "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
+        "openai_model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+        "custom_openai_url": os.environ.get("CUSTOM_OPENAI_URL", ""),
+        "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
+        "anthropic_model": os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-latest"),
+        "gemini_api_key": os.environ.get("GEMINI_API_KEY", ""),
+        "gemini_model": os.environ.get("GEMINI_MODEL", "gemini-1.5-flash"),
+        "default_calendar": os.environ.get("DEFAULT_CALENDAR", ""),
+        "default_shopping_list": os.environ.get("DEFAULT_SHOPPING_LIST", ""),
+    }
+
+    if os.path.exists(OPTIONS_PATH):
+        try:
+            with open(OPTIONS_PATH, "r") as f:
+                ha_options = json.load(f)
+                for key in config.keys():
+                    if key in ha_options and ha_options[key] != "":
+                        config[key] = ha_options[key]
+        except Exception as e:
+            print(f"Fehler beim Laden der options.json: {e}")
+
+    # Deaktiviere die anderen AI-Anbieter basierend auf der Auswahl
+    provider = config["llm_provider"]
+    if provider == "openai":
+        config["anthropic_api_key"] = ""
+        config["anthropic_model"] = ""
+        config["gemini_api_key"] = ""
+        config["gemini_model"] = ""
+    elif provider == "anthropic":
+        config["openai_api_key"] = ""
+        config["openai_model"] = ""
+        config["custom_openai_url"] = ""
+        config["gemini_api_key"] = ""
+        config["gemini_model"] = ""
+    elif provider == "openai_compatible":
+        config["anthropic_api_key"] = ""
+        config["anthropic_model"] = ""
+        config["gemini_api_key"] = ""
+        config["gemini_model"] = ""
+    elif provider == "gemini":
+        config["openai_api_key"] = ""
+        config["openai_model"] = ""
+        config["custom_openai_url"] = ""
+        config["anthropic_api_key"] = ""
+        config["anthropic_model"] = ""
+
+    return config
+
+
+def clean_json_response(text: str) -> str:
+    """Bereinigt eventuelle Markdown-Fences (```json ... ```) aus der LLM-Antwort."""
+    text = text.strip()
+    # Entferne ```json am Anfang und ``` am Ende
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+    if match:
+        return match.group(1).strip()
+    return text
 
 
 def generate_recipe_prompt(prompt_text: str, dietary: str, style: str, servings: int) -> str:
-    parts = [f"Erstelle ein Rezept für: {prompt_text}"]
-    if dietary:
-        parts.append(f"Ernährungsform: {dietary}")
-    if style:
-        parts.append(f"Stil: {style}")
-    parts.append(f"Portionen: {servings}")
-    parts.append("Bitte gebe Zutaten in einer Liste mit Mengenangaben und eine Schritt-für-Schritt Zubereitung zurück. Antwort als JSON mit keys title, description, servings, ingredients (name, amount, unit), instructions.")
-    return "\n".join(parts)
+    """Erstellt den System- und User-Prompt für die Rezeptgenerierung."""
+    system_prompt = (
+        "Du bist ein professioneller Chefkoch und Küchenhelfer. Deine Aufgabe ist es, ein hochwertiges Rezept "
+        "auf Deutsch basierend auf den Wünschen des Benutzers zu erstellen.\n"
+        "Du MÜSST exakt im folgenden JSON-Format antworten. Gib keinen Text vor oder nach dem JSON aus. "
+        "Verwende keine Markdown-Formatierung um das JSON herum (keine Backticks), es sei denn, es ist absolut notwendig. "
+        "Achte darauf, das JSON valide zu halten.\n\n"
+        "EXAKTES JSON-FORMAT:\n"
+        "{\n"
+        '  "title": "Name des Rezepts",\n'
+        '  "description": "Eine kurze, ansprechende Beschreibung (1-2 Sätze)",\n'
+        '  "servings": 4,\n'
+        '  "ingredients": [\n'
+        '    {"name": "Zutat 1", "amount": 100.0, "unit": "g"},\n'
+        '    {"name": "Zutat 2", "amount": 2, "unit": "Stück"},\n'
+        '    {"name": "Zutat 3", "amount": null, "unit": "Prise"}\n'
+        "  ],\n"
+        '  "instructions": "1. Schritt...\\n2. Schritt...\\n3. Schritt..."\n'
+        "}\n\n"
+        "WICHTIG:\n"
+        "- 'ingredients' ist eine Liste von Objekten mit 'name' (String), 'amount' (Float oder null, falls nicht quantifizierbar) "
+        "und 'unit' (String, z.B. g, ml, EL, TL, Stück, Zehe, Bund, Prise, nach Geschmack, oder leeres Feld '').\n"
+        "- Trage keine Textphrasen in 'amount' ein, sondern verwende dort nur Zahlen oder null. Text wie 'eine Handvoll' gehört in 'unit' oder 'name'.\n"
+        "- 'instructions' ist ein einzelner zusammenhängender String mit Zeilenumbrüchen (\\n)."
+    )
+
+    user_details = f"Rezept-Idee / Zutaten: {prompt_text}\n"
+    if dietary and dietary != "keine":
+        user_details += f"Ernährungsform: {dietary}\n"
+    if style and style != "keine":
+        user_details += f"Stil / Besonderheit: {style}\n"
+    user_details += f"Portionen: {servings}\n"
+
+    return system_prompt, user_details
 
 
-def call_openai(prompt: str, model: str = "gpt-4o-mini", api_key: Optional[str] = None, base_url: Optional[str] = None) -> Dict[str, Any]:
-    api_key = api_key or os.environ.get("OPENAI_API_KEY")
-    url = (base_url.rstrip('/') if base_url else "https://api.openai.com") + "/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+def call_openai(config: Dict[str, Any], system_prompt: str, user_prompt: str) -> str:
+    """Ruft die OpenAI-API oder ein kompatibles Endpoint auf."""
+    api_key = config["openai_api_key"]
+    model = config["openai_model"]
+    base_url = config["custom_openai_url"] or "https://api.openai.com/v1"
+
+    if not api_key and "api.openai.com" in base_url:
+        raise ValueError("OpenAI API Key ist nicht konfiguriert.")
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     payload = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 800
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.7,
     }
-    r = httpx.post(url, headers=headers, json=payload, timeout=30.0)
-    r.raise_for_status()
-    return r.json()
+
+    # response_format wird nur für echte OpenAI oder fähige Endpunkte gesetzt
+    if "api.openai.com" in base_url:
+        payload["response_format"] = {"type": "json_object"}
+
+    url = f"{base_url.rstrip('/')}/chat/completions"
+    response = httpx.post(url, headers=headers, json=payload, timeout=45.0)
+
+    if response.status_code != 200:
+        raise Exception(f"OpenAI API Fehler ({response.status_code}): {response.text}")
+
+    result = response.json()
+    return result["choices"][0]["message"]["content"]
 
 
-def call_ha_conversation(entity_id: str, text: str) -> Optional[str]:
-    if not SUPERVISOR_TOKEN:
-        return None
-    svc = f"{HOMEASSISTANT_URL}/services/conversation/process"
-    payload = {"text": text}
-    r = httpx.post(svc, headers={"Authorization": f"Bearer {SUPERVISOR_TOKEN}"}, json=payload, timeout=30.0)
-    if r.status_code != 200:
-        return None
+def call_anthropic(config: Dict[str, Any], system_prompt: str, user_prompt: str) -> str:
+    """Ruft die Anthropic (Claude) API auf."""
+    api_key = config["anthropic_api_key"]
+    model = config["anthropic_model"]
+
+    if not api_key:
+        raise ValueError("Anthropic API Key ist nicht konfiguriert.")
+
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+
+    payload = {
+        "model": model,
+        "max_tokens": 4000,
+        "system": system_prompt,
+        "messages": [
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.7,
+    }
+
+    url = "https://api.anthropic.com/v1/messages"
+    response = httpx.post(url, headers=headers, json=payload, timeout=45.0)
+
+    if response.status_code != 200:
+        raise Exception(f"Anthropic API Fehler ({response.status_code}): {response.text}")
+
+    result = response.json()
+    return result["content"][0]["text"]
+
+
+def call_gemini(config: Dict[str, Any], system_prompt: str, user_prompt: str) -> str:
+    """Ruft die Google Gemini-API auf."""
+    api_key = config["gemini_api_key"]
+    model = config["gemini_model"]
+
+    if not api_key:
+        raise ValueError("Gemini API Key ist nicht konfiguriert.")
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key
+    }
+
+    # Gemini 1.5/2.0 systemInstruction und contents Payload
+    payload = {
+        "contents": [{"parts": [{"text": user_prompt}]}],
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "generationConfig": {
+            "responseMimeType": "application/json"
+        }
+    }
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    response = httpx.post(url, headers=headers, json=payload, timeout=45.0)
+
+    if response.status_code != 200:
+        raise Exception(f"Gemini API Fehler ({response.status_code}): {response.text}")
+
+    result = response.json()
     try:
-        data = r.json()
-        # If the service returns text in 'response' or similar
-        return data.get("response") or data.get("text")
-    except Exception:
-        return None
+        return result["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        raise Exception(f"Unerwartetes Gemini API Antwortformat: {result}")
 
 
-def generate_recipe_via_ai(prompt_text: str, dietary: str, style: str, servings: int) -> Dict[str, Any]:
-    prompt = generate_recipe_prompt(prompt_text, dietary, style, servings)
-    # Try HA conversation first if configured
-    if USE_HA_CONVERSATION:
-        resp = call_ha_conversation(HA_CONVERSATION_ENTITY, prompt)
-        if resp:
-            try:
-                return json.loads(resp)
-            except Exception:
-                # Fallback to plain text parsing
-                return {"title": "KI-Rezept", "description": resp, "servings": servings, "ingredients": [], "instructions": resp}
+def generate_recipe_via_ai(
+    prompt_text: str,
+    dietary: str = "keine",
+    style: str = "keine",
+    servings: int = 4
+) -> Dict[str, Any]:
+    """Generiert ein Rezept über den konfigurierten LLM-Anbieter."""
+    config = load_config()
+    provider = config["llm_provider"]
 
-    # Default: use OpenAI
-    api_key = os.environ.get("OPENAI_API_KEY")
-    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-    base_url = os.environ.get("CUSTOM_OPENAI_URL")
-    data = call_openai(prompt, model=model, api_key=api_key, base_url=base_url)
-    # Extract text
+    system_prompt, user_prompt = generate_recipe_prompt(prompt_text, dietary, style, servings)
+
+    if provider == "openai":
+        raw_response = call_openai(config, system_prompt, user_prompt)
+    elif provider == "openai_compatible":
+        raw_response = call_openai(config, system_prompt, user_prompt)
+    elif provider == "anthropic":
+        raw_response = call_anthropic(config, system_prompt, user_prompt)
+    elif provider == "gemini":
+        raw_response = call_gemini(config, system_prompt, user_prompt)
+    else:
+        raise ValueError(f"Unbekannter LLM-Provider: {provider}")
+
+    cleaned_response = clean_json_response(raw_response)
+
     try:
-        content = data["choices"][0]["message"]["content"]
-        try:
-            return json.loads(content)
-        except Exception:
-            return {"title": "KI-Rezept", "description": content, "servings": servings, "ingredients": [], "instructions": content}
-    except Exception as e:
-        raise RuntimeError(f"LLM call failed: {e}")
+        recipe_data = json.loads(cleaned_response)
+        recipe_data["source"] = "KI-generiert"
+        # Portionsanzahl validieren
+        recipe_data["servings"] = recipe_data.get("servings") or servings
+        return recipe_data
+    except json.JSONDecodeError as e:
+        print(f"JSON-Parsing-Fehler der LLM-Antwort: {e}")
+        print(f"Roh-Antwort war: {raw_response}")
+        raise Exception("Die KI hat kein gültiges Rezept-JSON geliefert. Bitte versuche es erneut.")
