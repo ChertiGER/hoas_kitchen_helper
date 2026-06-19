@@ -349,7 +349,7 @@ function renderModalIngredients() {
         
         if (ing.amount !== null) {
             finalAmount = ing.amount * scale;
-            if (finalAmount.isInteger()) {
+            if (Number.isInteger(finalAmount)) {
                 amountText = intToGermanFraction(finalAmount);
             } else {
                 amountText = parseFloat(finalAmount.toFixed(2)).toString();
