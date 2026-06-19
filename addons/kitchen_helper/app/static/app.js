@@ -7,6 +7,9 @@ let currentModalServings = 4;
 let lastGeneratedRecipe = null;
 let defaultCalendarEntity = "";
 let defaultTodoEntity = "";
+let activeFilterTags = [];
+let uploadedImageB64 = null;
+let uploadedImageMime = null;
 
 // Initialisierung bei Laden der Seite
 document.addEventListener("DOMContentLoaded", () => {
@@ -128,6 +131,9 @@ function resetRecipeForm() {
     document.getElementById("form-recipe-id").value = "";
     document.getElementById("form-title").innerHTML = '<i class="fa-solid fa-plus text-amber-500"></i> Neues Rezept anlegen';
     
+    // Tags Checkboxen zurücksetzen
+    document.querySelectorAll(".form-tag-checkbox").forEach(cb => cb.checked = false);
+    
     const container = document.getElementById("ingredients-container");
     container.innerHTML = "";
     
@@ -146,6 +152,12 @@ async function saveRecipe(event) {
     const servings = parseInt(document.getElementById("form-servings").value) || 4;
     const description = document.getElementById("form-description").value;
     const instructions = document.getElementById("form-instructions").value;
+    
+    // Tags sammeln
+    const tags = [];
+    document.querySelectorAll(".form-tag-checkbox:checked").forEach(cb => {
+        tags.push(cb.value);
+    });
     
     // Zutaten sammeln
     const ingredients = [];
@@ -176,6 +188,7 @@ async function saveRecipe(event) {
         servings,
         instructions,
         ingredients,
+        tags,
         source: recipeId ? undefined : "Manuell" // Behalte alte Quelle bei Updates bei
     };
     
@@ -240,12 +253,39 @@ async function loadRecipes() {
             `;
             return;
         }
+
+        // Clientseitige Filterung nach Tags
+        let filteredRecipes = allRecipes;
+        if (activeFilterTags.length > 0) {
+            filteredRecipes = allRecipes.filter(recipe => {
+                return activeFilterTags.every(t => recipe.tags && recipe.tags.includes(t));
+            });
+        }
+
+        if (filteredRecipes.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full py-16 flex flex-col items-center justify-center text-slate-500 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm">Keine Treffer</p>
+                        <p class="text-xs text-slate-400 mt-1">Für die ausgewählten Filter-Kombinationen wurden keine Rezepte gefunden.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
         
-        grid.innerHTML = allRecipes.map(recipe => {
-            const isAi = recipe.source === "KI-generiert";
+        grid.innerHTML = filteredRecipes.map(recipe => {
+            const isAi = recipe.source === "KI-generiert" || recipe.source?.startsWith("Importiert") || recipe.source === "Bild-Scan" || recipe.source === "Visuelle Resteverwertung";
             const sourceTag = isAi 
-                ? '<span class="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"><i class="fa-solid fa-sparkles mr-0.5"></i> KI-generiert</span>'
+                ? `<span class="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"><i class="fa-solid fa-sparkles mr-0.5"></i> ${recipe.source}</span>`
                 : '<span class="bg-slate-800 border border-slate-700 text-slate-400 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">Manuell</span>';
+
+            const tagsHtml = recipe.tags && recipe.tags.length > 0
+                ? recipe.tags.map(t => `<span class="bg-slate-950 text-amber-500/80 text-[9px] font-semibold px-2 py-0.5 rounded border border-slate-800/80">${t}</span>`).join("")
+                : "";
 
             return `
                 <div onclick="openRecipeModal(${recipe.id})" class="bg-slate-900 rounded-2xl border border-slate-800/80 shadow-md p-5 hover:border-amber-500/40 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between h-full group">
@@ -259,6 +299,9 @@ async function loadRecipes() {
                         <div>
                             <h3 class="text-white font-extrabold group-hover:text-amber-400 transition-colors text-lg line-clamp-1">${recipe.title}</h3>
                             <p class="text-slate-400 text-xs mt-1.5 line-clamp-2 leading-relaxed">${recipe.description || 'Keine Beschreibung hinterlegt.'}</p>
+                        </div>
+                        <div class="flex flex-wrap gap-1 pt-1">
+                            ${tagsHtml}
                         </div>
                     </div>
                     
@@ -292,9 +335,19 @@ async function openRecipeModal(recipeId) {
         document.getElementById("modal-title").innerText = currentModalRecipe.title;
         document.getElementById("modal-description").innerText = currentModalRecipe.description || "Keine Beschreibung hinterlegt.";
         
+        // Tags anzeigen
+        const tagsContainer = document.getElementById("modal-tags-display");
+        if (currentModalRecipe.tags && currentModalRecipe.tags.length > 0) {
+            tagsContainer.innerHTML = currentModalRecipe.tags.map(t => `<span class="bg-slate-950 text-amber-500 text-[10px] font-bold px-2.5 py-0.5 rounded border border-slate-800">${t}</span>`).join("");
+            tagsContainer.classList.remove("hidden");
+        } else {
+            tagsContainer.innerHTML = "";
+            tagsContainer.classList.add("hidden");
+        }
+        
         const tag = document.getElementById("modal-tag");
-        const isAi = currentModalRecipe.source === "KI-generiert";
-        tag.innerText = currentModalRecipe.source;
+        const isAi = currentModalRecipe.source === "KI-generiert" || currentModalRecipe.source?.startsWith("Importiert") || currentModalRecipe.source === "Bild-Scan" || currentModalRecipe.source === "Visuelle Resteverwertung";
+        tag.innerText = currentModalRecipe.source || "Rezept";
         if (isAi) {
             tag.className = "text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400";
         } else {
@@ -520,6 +573,11 @@ function editRecipeFromModal() {
     document.getElementById("form-description").value = recipe.description || "";
     document.getElementById("form-instructions").value = recipe.instructions;
     
+    // Tags Checkboxen befüllen
+    document.querySelectorAll(".form-tag-checkbox").forEach(cb => {
+        cb.checked = recipe.tags && recipe.tags.includes(cb.value);
+    });
+    
     document.getElementById("form-title").innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> Rezept "${recipe.title}" bearbeiten`;
     
     const container = document.getElementById("ingredients-container");
@@ -641,6 +699,11 @@ function editAiRecipeBeforeSaving() {
     document.getElementById("form-servings").value = recipe.servings;
     document.getElementById("form-description").value = recipe.description || "";
     document.getElementById("form-instructions").value = recipe.instructions;
+    
+    // Tags Checkboxen befüllen
+    document.querySelectorAll(".form-tag-checkbox").forEach(cb => {
+        cb.checked = recipe.tags && recipe.tags.includes(cb.value);
+    });
     
     document.getElementById("form-title").innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> KI-Entwurf bearbeiten`;
     
@@ -932,4 +995,257 @@ async function saveConfigSettingsSilently() {
     } catch (e) {
         console.error("Fehler beim stillen Speichern der Einstellungen:", e);
     }
+}
+
+// ---- RECIPE TAG FILTERING ----
+function toggleTagFilter(tag, button) {
+    const idx = activeFilterTags.indexOf(tag);
+    if (idx > -1) {
+        // Tag entfernen
+        activeFilterTags.splice(idx, 1);
+        button.classList.remove("bg-amber-500", "text-slate-950", "border-amber-500/40");
+        button.classList.add("bg-slate-950", "text-slate-400", "border-slate-850");
+    } else {
+        // Tag hinzufügen
+        activeFilterTags.push(tag);
+        button.classList.add("bg-amber-500", "text-slate-950", "border-amber-500/40");
+        button.classList.remove("bg-slate-950", "text-slate-400", "border-slate-850");
+    }
+    loadRecipes();
+}
+
+function clearTagFilters() {
+    activeFilterTags = [];
+    document.querySelectorAll(".tag-filter-btn").forEach(btn => {
+        btn.classList.remove("bg-amber-500", "text-slate-950", "border-amber-500/40");
+        btn.classList.add("bg-slate-950", "text-slate-400", "border-slate-850");
+    });
+    loadRecipes();
+}
+
+// ---- AI SUB-MODE SWITCHER ----
+function switchAiMode(modeId) {
+    // Alle Sub-Modi ausblenden
+    document.querySelectorAll(".ai-mode-content").forEach(el => {
+        el.classList.add("hidden");
+        el.classList.remove("block");
+    });
+    
+    // Gewählten Sub-Modus einblenden
+    const target = document.getElementById(`ai-${modeId}`);
+    if (target) {
+        target.classList.remove("hidden");
+        target.classList.add("block");
+    }
+    
+    // Buttons stylen
+    document.querySelectorAll(".ai-mode-btn").forEach(btn => {
+        btn.classList.remove("bg-amber-500", "text-slate-950", "shadow-sm");
+        btn.classList.add("text-slate-400", "hover:text-white");
+    });
+    
+    const activeBtn = document.getElementById(`btn-${modeId}`);
+    if (activeBtn) {
+        activeBtn.classList.remove("text-slate-400", "hover:text-white");
+        activeBtn.classList.add("bg-amber-500", "text-slate-950", "shadow-sm");
+    }
+}
+
+// ---- VISION / FOTO HANDLERS ----
+function previewUploadedImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+        showAlert("Bitte wähle eine gültige Bilddatei aus.", "error");
+        return;
+    }
+    
+    uploadedImageMime = file.type;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById("vision-image-preview");
+        preview.src = e.target.result;
+        
+        document.getElementById("vision-upload-placeholder").classList.add("hidden");
+        document.getElementById("vision-image-preview-container").classList.remove("hidden");
+        
+        uploadedImageB64 = e.target.result.split(",")[1];
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearVisionImage(event) {
+    if (event) event.stopPropagation();
+    
+    uploadedImageB64 = null;
+    uploadedImageMime = null;
+    
+    document.getElementById("ai-image-file").value = "";
+    document.getElementById("vision-image-preview").src = "";
+    
+    document.getElementById("vision-upload-placeholder").classList.remove("hidden");
+    document.getElementById("vision-image-preview-container").classList.add("hidden");
+}
+
+// ---- SUB-MODE API CALLS ----
+async function scrapeRecipeFromUrlBtn() {
+    const url = document.getElementById("ai-scrape-url").value.trim();
+    if (!url) {
+        showAlert("Bitte gib eine gültige Rezept-URL ein.", "error");
+        return;
+    }
+    
+    const btn = document.getElementById("btn-scrape-ai");
+    const emptyState = document.getElementById("ai-output-empty");
+    const loader = document.getElementById("ai-output-loader");
+    const resultCard = document.getElementById("ai-output-result");
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Scrape Rezept...';
+    emptyState.classList.add("hidden");
+    resultCard.classList.add("hidden");
+    loader.classList.remove("hidden");
+    
+    try {
+        const response = await fetch("./api/recipes/scrape", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url })
+        });
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Fehler beim Scrapen");
+        }
+        
+        lastGeneratedRecipe = await response.json();
+        showGeneratedRecipeResult();
+        document.getElementById("ai-scrape-url").value = "";
+    } catch(e) {
+        showAlert(e.message, "error");
+        loader.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-download"></i> Rezept importieren';
+    }
+}
+
+async function importRecipeImageBtn() {
+    if (!uploadedImageB64) {
+        showAlert("Bitte wähle zuerst ein Rezeptfoto aus.", "error");
+        return;
+    }
+    
+    const btn = document.getElementById("btn-vision-import");
+    const emptyState = document.getElementById("ai-output-empty");
+    const loader = document.getElementById("ai-output-loader");
+    const resultCard = document.getElementById("ai-output-result");
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Lese Rezept...';
+    emptyState.classList.add("hidden");
+    resultCard.classList.add("hidden");
+    loader.classList.remove("hidden");
+    
+    const fileInput = document.getElementById("ai-image-file");
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    
+    try {
+        const response = await fetch("./api/recipes/import-image", {
+            method: "POST",
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Fehler beim Einlesen des Bildes");
+        }
+        
+        lastGeneratedRecipe = await response.json();
+        showGeneratedRecipeResult();
+        clearVisionImage();
+    } catch(e) {
+        showAlert(e.message, "error");
+        loader.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Rezept einlesen';
+    }
+}
+
+async function analyseLeftoversImageBtn() {
+    if (!uploadedImageB64) {
+        showAlert("Bitte wähle zuerst ein Foto deines Kühlschranks/Vorrats aus.", "error");
+        return;
+    }
+    
+    const btn = document.getElementById("btn-vision-leftovers");
+    const emptyState = document.getElementById("ai-output-empty");
+    const loader = document.getElementById("ai-output-loader");
+    const resultCard = document.getElementById("ai-output-result");
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Suche Rezepte...';
+    emptyState.classList.add("hidden");
+    resultCard.classList.add("hidden");
+    loader.classList.remove("hidden");
+    
+    const fileInput = document.getElementById("ai-image-file");
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    
+    try {
+        const response = await fetch("./api/recipes/visual-leftovers", {
+            method: "POST",
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Fehler bei der Resteverwertung");
+        }
+        
+        lastGeneratedRecipe = await response.json();
+        showGeneratedRecipeResult();
+        clearVisionImage();
+    } catch(e) {
+        showAlert(e.message, "error");
+        loader.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-carrot"></i> Resteverwertung';
+    }
+}
+
+function showGeneratedRecipeResult() {
+    const emptyState = document.getElementById("ai-output-empty");
+    const loader = document.getElementById("ai-output-loader");
+    const resultCard = document.getElementById("ai-output-result");
+    
+    document.getElementById("ai-result-title").innerText = lastGeneratedRecipe.title;
+    document.getElementById("ai-result-desc").innerText = lastGeneratedRecipe.description || "";
+    document.getElementById("ai-result-servings").innerText = lastGeneratedRecipe.servings;
+    document.getElementById("ai-result-instructions").innerText = lastGeneratedRecipe.instructions;
+    
+    const ingredientsList = document.getElementById("ai-result-ingredients");
+    ingredientsList.innerHTML = lastGeneratedRecipe.ingredients.map(ing => {
+        const amountText = ing.amount !== null ? `${ing.amount} ` : "";
+        const unitText = ing.unit ? `${ing.unit} ` : "";
+        return `
+            <li class="flex items-center gap-2 border-b border-slate-800/60 py-1.5">
+                <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                <span>${amountText}${unitText}<strong>${ing.name}</strong></span>
+            </li>
+        `;
+    }).join("");
+    
+    loader.classList.add("hidden");
+    resultCard.classList.remove("hidden");
+    showAlert("<i class=\"fa-solid fa-wand-magic-sparkles text-amber-400\"></i> Rezept geladen!", "success");
 }

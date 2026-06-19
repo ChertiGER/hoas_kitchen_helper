@@ -1,5 +1,7 @@
 # 🍳 Küchenhelfer Addon
 
+[![Spendier mir einen Kaffee](https://img.shields.io/badge/Donate-PayPal-003087?style=flat-square&logo=paypal&logoColor=white)](https://paypal.me/YHolz)
+
 **Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung, Einkaufslisten und KI-Rezeptgenerierung in einem übersichtlichen, modernen Dashboard.**
 
 ---
@@ -48,6 +50,14 @@
 Du kannst in der Konfiguration Standard-Entitäten festlegen, damit diese in der App bereits vorausgewählt sind:
 - **`default_calendar`**: Die Entity-ID deines HA-Kalenders (z.B. `calendar.weekly_meals`).
 - **`default_shopping_list`**: Die Entity-ID deiner HA-To-Do-Liste (z.B. `todo.einkaufsliste`) oder `legacy` für die klassische Einkaufsliste.
+
+---
+
+## ☕ Support
+
+Wenn dir der Küchenhelfer gefällt und du meine Arbeit an diesem Addon unterstützen möchtest, kannst du mir gerne einen Kaffee spendieren!
+
+[![Donate via PayPal](https://img.shields.io/badge/Donate-PayPal-003087.svg?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/YHolz)
 
 ---
 

@@ -1,7 +1,8 @@
 import os
+import base64
 from contextlib import asynccontextmanager
 from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, status, File, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -28,7 +29,12 @@ from .ha_api import (
     add_to_legacy_shopping_list,
     is_ha_available
 )
-from .llm import generate_recipe_via_ai
+from .llm import (
+    generate_recipe_via_ai,
+    scrape_recipe_from_url,
+    import_recipe_from_image,
+    generate_recipe_from_leftovers_image
+)
 
 
 @asynccontextmanager
@@ -41,7 +47,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Küchenhelfer API",
     description="Backend-Dienste für das Küchenhelfer Home Assistant Addon",
-    version="1.4.0",
+    version="1.6.0",
     lifespan=lifespan
 )
 
@@ -68,6 +74,11 @@ class RecipeSchema(BaseModel):
     instructions: str
     source: Optional[str] = "Manuell"
     ingredients: List[IngredientSchema]
+    tags: List[str] = []
+
+
+class ScrapeRequest(BaseModel):
+    url: str
 
 
 class GenerateRecipeRequest(BaseModel):
@@ -189,6 +200,38 @@ def generate_ai_recipe(req: GenerateRecipeRequest):
             servings=req.servings
         )
         return recipe_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/recipes/scrape")
+def scrape_recipe(req: ScrapeRequest):
+    try:
+        return scrape_recipe_from_url(req.url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/recipes/import-image")
+async def import_recipe_image(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Die hochgeladene Datei muss ein Bild sein.")
+    try:
+        image_bytes = await file.read()
+        image_data_b64 = base64.b64encode(image_bytes).decode("utf-8")
+        return import_recipe_from_image(image_data_b64, file.content_type)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/recipes/visual-leftovers")
+async def visual_leftovers(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Die hochgeladene Datei muss ein Bild sein.")
+    try:
+        image_bytes = await file.read()
+        image_data_b64 = base64.b64encode(image_bytes).decode("utf-8")
+        return generate_recipe_from_leftovers_image(image_data_b64, file.content_type)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
