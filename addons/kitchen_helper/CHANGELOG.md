@@ -1,7 +1,9 @@
 # Changelog – Küchenhelfer Addon
 
-Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
-Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
+## [1.7.2] – 2026-06-20
+
+### Geändert
+- PayPal-Spendenlink aus der Addon-Store-Beschreibung entfernt (war zu prominent und unprofessionell). Link bleibt weiterhin in README und Dokumentation.
 
 ---
 
