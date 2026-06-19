@@ -250,6 +250,8 @@ class KitchenHelperCard extends HTMLElement {
           font-weight: 800;
           margin: 0;
           line-height: 1.2;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
         .recipe-subtitle {
           color: rgba(15, 23, 42, 0.7);
