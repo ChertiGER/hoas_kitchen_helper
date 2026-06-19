@@ -1,7 +1,7 @@
 name: "Küchenhelfer"
-version: "1.6.2"
+version: "1.6.3"
 slug: "kitchen_helper"
-description: "Rezept-Datenbank mit AI-Skalierung, LLM-Rezeptgenerierung, Wochenplaner (HA Kalender) und Einkaufslisten-Schnittstelle."
+description: "ChertiGER/hoas_kitchen_helper | Rezept-Datenbank mit AI-Skalierung, LLM-Rezeptgenerierung, Wochenplaner (HA Kalender) und Einkaufslisten-Schnittstelle. Support: https://paypal.me/YHolz"
 url: "https://github.com/ChertiGER/hoas_kitchen_helper"
 arch:
   - aarch64
