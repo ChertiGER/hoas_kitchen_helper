@@ -1,8 +1,10 @@
 # 🍳 Küchenhelfer Addon
 
+[![Version](https://img.shields.io/badge/Version-1.7.0-f59e0b?style=flat-square)](https://github.com/ChertiGER/hoas_kitchen_helper/releases)
 [![Spendier mir einen Kaffee](https://img.shields.io/badge/Donate-PayPal-003087?style=flat-square&logo=paypal&logoColor=white)](https://paypal.me/YHolz)
 
 **Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung, Einkaufslisten und KI-Rezeptgenerierung in einem übersichtlichen, modernen Dashboard.**
+
 
 ---
 
@@ -53,7 +55,20 @@ Du kannst in der Konfiguration Standard-Entitäten festlegen, damit diese in der
 
 ---
 
+## 🎴 Lovelace Dashboard-Karte (ab v1.7.0)
+
+Zeige das heutige Rezept direkt auf deinem Dashboard an – mit visuellem Editor.
+
+1. Kopiere `kitchen-helper-card.js` in `/config/www/`
+2. Registriere sie unter **Einstellungen → Dashboards → Ressourcen** als `/local/kitchen-helper-card.js`
+3. Karte erscheint im **„Karte hinzufügen"**-Dialog als **„🍳 Kitchen Helper"**
+
+Konfigurierbar: Kalender-Entität, Akzentfarbe, sichtbare Abschnitte. Siehe [DOCS.md](addons/kitchen_helper/DOCS.md) für Details.
+
+---
+
 ## ☕ Support
+
 
 Wenn dir der Küchenhelfer gefällt und du meine Arbeit an diesem Addon unterstützen möchtest, kannst du mir gerne einen Kaffee spendieren!
 

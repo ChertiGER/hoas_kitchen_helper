@@ -45,15 +45,42 @@ Gehe in den Tab **Konfiguration** des Addons und wähle deinen bevorzugten `llm_
 
 ## 🎴 Lovelace Dashboard Rezeptkarte
 
-Du kannst dein Dashboard mit einer schicken Rezeptkarte verschönern, die das heute geplante Rezept direkt anzeigt:
+Du kannst dein Dashboard mit einer schicken Rezeptkarte verschönern, die das heute geplante Rezept direkt anzeigt.
 
-1. Lade dir die `kitchen-helper-card.js` aus dem Konfigurations-Tab der App oder direkt aus dem GitHub-Repository herunter.
-2. Registriere sie in Home Assistant unter **Einstellungen** → **Dashboards** → **Ressourcen** als JavaScript-Modul (`/local/kitchen-helper-card.js` o.ä.).
-3. Füge auf deinem Dashboard eine manuelle Karte hinzu:
-   ```yaml
-   type: custom:kitchen-helper-card
-   entity: calendar.dein_kochplan_kalender
-   ```
+### Installation der Karte
+
+1. Lade die `kitchen-helper-card.js` herunter und lege sie in den `www`-Ordner deiner Home Assistant Konfiguration (z.B. `/config/www/kitchen-helper-card.js`).
+2. Registriere sie unter **Einstellungen** → **Dashboards** → **Ressourcen** als JavaScript-Modul mit der URL `/local/kitchen-helper-card.js`.
+3. Leere den Browser-Cache (Shift+F5).
+
+### Karte hinzufügen (visuell, ab v1.7.0)
+
+Ab Version 1.7.0 erscheint die Karte direkt im **„Karte hinzufügen"**-Dialog:
+
+1. Gehe auf dein Dashboard → **Bearbeiten** → **Karte hinzufügen**.
+2. Suche nach **„Kitchen Helper"** oder **„🍳"**.
+3. Klicke auf die Karte – ein visueller Editor öffnet sich automatisch.
+
+Im Editor kannst du folgendes konfigurieren:
+- **Kalender-Entität**: Dropdown mit allen deinen `calendar.*`-Entitäten
+- **Kartentitel**: Optionaler Freitext
+- **Akzentfarbe**: Farbpicker für den Header und alle Akzente
+- **Abschnitte**: Beschreibung, Zutaten und Zubereitung per Toggle ein-/ausblenden
+- **Max. Höhe der Zubereitung**: Scrollbereich in Pixeln begrenzen
+
+### Alternative: Manuelle YAML-Konfiguration
+
+```yaml
+type: custom:kitchen-helper-card
+entity: calendar.dein_kochplan_kalender
+title: Heutiges Rezept          # optional
+accent_color: "#f59e0b"          # optional, Standardfarbe
+show_description: true           # optional
+show_ingredients: true           # optional
+show_instructions: true          # optional
+max_instruction_height: 180      # optional, in px
+```
+
 
 ---
 
