@@ -1,10 +1,14 @@
-# hoas_kitchen_helper — Küchenhelfer Addon
+# hoas_kitchen_helper — Küchenhelfer Addon v1.0.0
+
+**🎉 Jetzt im [Home Assistant App Store](https://home-assistant.io/integrations) verfügbar!**
 
 Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung und Einkaufsliste in einem übersichtlichen Dashboard. Sie bietet:
 
-- Lokale Rezeptdatenbank (SQLite) mit skalierbaren Zutatenmengen
-- KI-gestützte Rezeptgenerierung (OpenAI / Anthropic kompatibel)
-- Integration in Home Assistant Kalender und Einkaufsliste
+- ✅ Lokale Rezeptdatenbank (SQLite) mit skalierbaren Zutatenmengen
+- ✅ KI-gestützte Rezeptgenerierung (OpenAI / Anthropic kompatibel)
+- ✅ Integration in Home Assistant Kalender und Einkaufslisten
+- ✅ Modernes, responsives Tailwind-UI
+- ✅ GPL-3.0 Open Source
 
 Lokaler Schnellstart (Entwicklung):
 
