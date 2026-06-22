@@ -1,5 +1,5 @@
 // ============================================================
-//  Kitchen Helper Card  –  v1.7.0
+//  Kitchen Helper Card  –  v1.8.0
 //  Visuelle Lovelace-Karte für den Küchenhelfer-Addon
 // ============================================================
 
