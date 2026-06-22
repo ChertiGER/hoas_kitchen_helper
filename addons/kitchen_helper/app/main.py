@@ -87,6 +87,9 @@ class PantryItem(BaseModel):
 class SettingsSchema(BaseModel):
     default_calendar: Optional[str] = None
     default_shopping_list: Optional[str] = None
+    cooking_devices: Optional[str] = None
+    intolerances: Optional[str] = None
+    additional_prefs: Optional[str] = None
 
 
 class IngredientSchema(BaseModel):
@@ -273,11 +276,17 @@ def ha_status():
     cfg = load_config()
     db_calendar = get_setting("default_calendar", cfg.get("default_calendar", ""))
     db_shopping_list = get_setting("default_shopping_list", cfg.get("default_shopping_list", ""))
+    db_cooking_devices = get_setting("cooking_devices", cfg.get("cooking_devices", ""))
+    db_intolerances = get_setting("intolerances", cfg.get("intolerances", ""))
+    db_additional_prefs = get_setting("additional_prefs", cfg.get("additional_prefs", ""))
     return {
         "connected": is_ha_available(),
         "using_token": bool(os.environ.get("SUPERVISOR_TOKEN")),
         "default_calendar": db_calendar,
-        "default_shopping_list": db_shopping_list
+        "default_shopping_list": db_shopping_list,
+        "cooking_devices": db_cooking_devices,
+        "intolerances": db_intolerances,
+        "additional_prefs": db_additional_prefs,
     }
 
 
@@ -288,6 +297,12 @@ def save_settings(settings: SettingsSchema):
             set_setting("default_calendar", settings.default_calendar)
         if settings.default_shopping_list is not None:
             set_setting("default_shopping_list", settings.default_shopping_list)
+        if settings.cooking_devices is not None:
+            set_setting("cooking_devices", settings.cooking_devices)
+        if settings.intolerances is not None:
+            set_setting("intolerances", settings.intolerances)
+        if settings.additional_prefs is not None:
+            set_setting("additional_prefs", settings.additional_prefs)
         return {"message": "Einstellungen erfolgreich gespeichert"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fehler beim Speichern der Einstellungen: {e}")

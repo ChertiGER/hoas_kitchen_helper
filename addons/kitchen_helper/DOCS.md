@@ -35,7 +35,12 @@ Gehe in den Tab **Konfiguration** des Addons und wähle deinen bevorzugten `llm_
 * Hake Zutaten an, die dir fehlen, und exportiere sie direkt in deine Home Assistant To-Do-Liste.
 * **Standardvorrat (Pantry)**: Zutaten auf deiner Pantry-Liste (z.B. Salz, Öl, Mehl) werden automatisch als vorrätig markiert und beim Einkaufslisten-Export standardmäßig abgewählt.
 
-### 4. KI-Chefkoch, Web-Scraper & Bild-Import
+### 4. Küchenpräferenzen & Unverträglichkeiten (ab v1.8.0)
+* **Küchengeräte & Modelle**: Wähle deine Küchenausstattung aus 23 typischen Geräten aus und definiere optional Marke/Modell (z.B. *Vorwerk TM6* oder *Ninja DoubleStack*). Die KI optimiert alle Rezepte und Schritte exakt auf deine Hardware (z.B. TM-Varoma-Schritte, Airfryer-Garzeiten).
+* **Multi-Select Allergene**: Wähle per Dropdown aus den 14 EU-Hauptallergenen und häufigen Intoleranzen (z.B. Gluten, Laktose, Nüsse, kein Schweinefleisch). Die KI schließt diese Zutaten strikt aus.
+* **Weitere Präferenzen**: Freitextfeld für zusätzliche Wünsche (z.B. „Low-Carb", „saisonal").
+
+### 5. KI-Chefkoch, Web-Scraper & Bild-Import
 * **KI-Chef**: Gib einfach Zutaten oder Wünsche ein, wähle Ernährungsform oder Küchenstil, und lass dir ein Rezept generieren.
 * **Web Scraper**: Trage die URL einer Koch-Webseite (z.B. Chefkoch) ein, um das Rezept direkt zu digitalisieren.
 * **Foto-Import**: Lade ein Foto eines gedruckten Rezepts hoch. Die KI liest es ein und erstellt einen Entwurf.
