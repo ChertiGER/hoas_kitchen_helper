@@ -1142,6 +1142,19 @@ document.addEventListener("click", (e) => {
     }
 });
 
+// Click-Handler für Unverträglichkeiten-Optionen, um Safari-Doppelklick-Bugs zu beheben
+document.addEventListener("click", (e) => {
+    const option = e.target.closest(".intolerance-option");
+    if (option) {
+        const cb = option.querySelector(".intolerance-checkbox");
+        if (cb && e.target !== cb) {
+            e.preventDefault();
+            cb.checked = !cb.checked;
+            cb.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+    }
+});
+
 // Trigger bei jeder Änderung einer Checkbox aktualisieren
 document.addEventListener("change", (e) => {
     if (e.target.classList.contains("intolerance-checkbox")) {

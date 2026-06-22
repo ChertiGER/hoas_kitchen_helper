@@ -1,5 +1,12 @@
 # Changelog – Küchenhelfer Addon
 
+## [1.8.2] – 2026-06-22
+
+### Behoben
+- **Auswahl-Bug in Safari/WebViews**: Klick-Handling für Unverträglichkeiten-Checkboxen optimiert, um doppelt auslösende Klick-Ereignisse (Double-Toggle) unter Safari auf macOS und iOS zu verhindern. Die Allergene lassen sich nun reibungslos auswählen.
+
+---
+
 ## [1.8.1] – 2026-06-22
 
 ### Behoben

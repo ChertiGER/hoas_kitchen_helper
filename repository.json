@@ -8,7 +8,7 @@
       "slug": "kitchen_helper",
       "description": "ChertiGER/hoas_kitchen_helper | Rezept-Datenbank mit KI-Generierung, Kalenderplanung und Einkaufsliste. Support: https://paypal.me/YHolz",
       "url": "https://github.com/ChertiGER/hoas_kitchen_helper/tree/main/addons/kitchen_helper",
-      "version": "1.8.1",
+      "version": "1.8.2",
       "image": "ghcr.io/chertiGER/hoas-kitchen-helper-{arch}",
       "arch": ["aarch64", "amd64", "armhf", "armv7", "i386"],
       "homeassistant": "2023.1.0",
