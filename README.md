@@ -1,6 +1,6 @@
 # 🍳 Küchenhelfer Addon
 
-[![Version](https://img.shields.io/badge/Version-1.8.0-f59e0b?style=flat-square)](https://github.com/ChertiGER/hoas_kitchen_helper/releases)
+[![Version](https://img.shields.io/badge/Version-1.8.1-f59e0b?style=flat-square)](https://github.com/ChertiGER/hoas_kitchen_helper/releases)
 [![Spendier mir einen Kaffee](https://img.shields.io/badge/Donate-PayPal-003087?style=flat-square&logo=paypal&logoColor=white)](https://paypal.me/YHolz)
 
 **Die Küchenhelfer-Integration für Home Assistant verbindet Essensplanung, Einkaufslisten und KI-Rezeptgenerierung in einem übersichtlichen, modernen Dashboard.**

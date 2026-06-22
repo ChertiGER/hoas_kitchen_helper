@@ -1,5 +1,12 @@
 # Changelog – Küchenhelfer Addon
 
+## [1.8.1] – 2026-06-22
+
+### Behoben
+- **Cache-Control im Ingress-Iframe**: Es werden nun spezifische Cache-Control-Header für statische HTML-, JS- und CSS-Dateien mitgesendet. Dies verhindert, dass der Browser bei zukünftigen Addon-Updates veraltete Stände aus dem Cache lädt.
+
+---
+
 ## [1.8.0] – 2026-06-22
 
 ### Neu

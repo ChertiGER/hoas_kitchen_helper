@@ -56,7 +56,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Küchenhelfer API",
     description="Backend-Dienste für das Küchenhelfer Home Assistant Addon",
-    version="1.8.0",
+    version="1.8.1",
     lifespan=lifespan
 )
 
