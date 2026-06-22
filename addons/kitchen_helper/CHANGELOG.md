@@ -1,5 +1,18 @@
 # Changelog – Küchenhelfer Addon
 
+## [1.8.0] – 2026-06-22
+
+### Neu
+- **Küchenpräferenzen**: Neue Konfigurationssektion im Einstellungs-Tab zur KI-Zubereitungsoptimierung basierend auf der vorhandenen Küchenausstattung und Unverträglichkeiten.
+- **Detaillierte Küchengeräte-Auswahl**: Auswahl aus 23 typischen Küchengeräten (unterteilt in Grundausstattung, Kaffeezubereitung, Mixer & Küchenmaschinen, Spezialgeräte).
+  - **Marken & Modelle**: Optionales Eingabefeld pro ausgewähltem Gerät (z.B. „Vorwerk TM6" bei Thermomix, oder „Ninja DoubleStack" bei Airfryer), um Anweisungen optimal auf das Modell anzupassen.
+  - **Gerätespezifische KI-Modi**: Automatisierte Optimierung (z.B. TM-spezifische Varoma/Messerstufen im TM-Modus, Temperatur-/Zeitangaben im Airfryer-Modus).
+- **Multi-Select Dropdown für Unverträglichkeiten**: Komfortable Auswahl der 14 EU-Hauptallergene und weiterer Unverträglichkeiten mit übersichtlichen roten Pill-Tags (einzeln per Klick entfernbar).
+- **Weitere persönliche Präferenzen**: Freitextfeld für sonstige Hinweise (z.B. „Low-Carb", „saisonal").
+- Die Präferenzen fließen automatisch in **alle** KI-Generierungen ein (KI-Chefkoch, Rezept-Scraper, Foto-Import, visuelle Resteverwertung).
+
+---
+
 ## [1.7.2] – 2026-06-20
 
 ### Geändert

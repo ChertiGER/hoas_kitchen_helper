@@ -428,8 +428,405 @@
         </div>
 
         <!-- TAB: KONFIGURATION -->
-        <div id="settings-tab" class="tab-content hidden max-w-5xl mx-auto">
+        <div id="settings-tab" class="tab-content hidden max-w-5xl mx-auto space-y-6">
+
+            <!-- Küchenpräferenzen Card (volle Breite) -->
+            <div class="bg-slate-900 border border-amber-500/20 rounded-2xl shadow-lg p-6 space-y-6">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2 pb-3 border-b border-slate-800">
+                    <i class="fa-solid fa-kitchen-set text-amber-500"></i> Küchenpräferenzen für KI-Rezepte
+                </h2>
+                <p class="text-xs text-slate-400 leading-relaxed -mt-2">
+                    Diese Einstellungen werden automatisch bei <strong class="text-slate-300">jeder KI-Rezeptgenerierung</strong> berücksichtigt – egal ob über den KI-Chefkoch, den Web-Scraper oder den Foto-Import.
+                </p>
+
+                <!-- Küchengeräte Checkboxen -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-blender text-amber-500/70"></i> Vorhandene Küchengeräte
+                        </h3>
+                        <button onclick="selectAllDevices(false)" class="text-[10px] text-slate-500 hover:text-amber-400 transition">Alle abwählen</button>
+                    </div>
+                    <p class="text-[11px] text-slate-500 -mt-1">Wähle alle Geräte, die du in deiner Küche hast. Die KI optimiert die Zubereitungsschritte entsprechend.</p>
+
+                    <!-- Kategorie: Kochfeld & Herd -->
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">🏠 Grundausstattung</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-herd" value="herd" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🍳 Herd / Kochfeld</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-herd" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-backofen" value="backofen" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🔥 Backofen</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-backofen" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-mikrowelle" value="mikrowelle" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">📡 Mikrowelle</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-mikrowelle" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-wasserkocher" value="wasserkocher" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">💧 Wasserkocher</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-wasserkocher" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-toaster" value="toaster" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🍞 Toaster</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-toaster" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kategorie: Kaffee -->
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">☕ Kaffeezubereitung</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-kaffeemaschine" value="kaffeemaschine" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">☕ Kaffeemaschine</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-kaffeemaschine" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-kaffeevollautomat" value="kaffeevollautomat" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🤖 Kaffeevollautomat</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-kaffeevollautomat" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-espressomaschine" value="espressomaschine" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🫘 Espressomaschine</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-espressomaschine" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kategorie: Küchenmaschinen & Mixer -->
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">⚙️ Küchenmaschinen & Mixer</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-stabmixer" value="stabmixer" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🥄 Stabmixer / Pürierstab</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-stabmixer" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-handmixer" value="handmixer" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🔌 Handmixer</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-handmixer" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-kuechenmaschine" value="kuechenmaschine" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🍰 Küchenmaschine</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-kuechenmaschine" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-standmixer" value="standmixer" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🥤 Standmixer / Blender</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-standmixer" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-thermomix" value="thermomix" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🌀 Thermomix</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-thermomix" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kategorie: Spezialgeräte -->
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">✨ Spezialgeräte</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-airfryer" value="airfryer" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">💨 Airfryer</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-airfryer" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-waffeleisen" value="waffeleisen" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🧇 Waffeleisen</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-waffeleisen" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-kontaktgrill" value="kontaktgrill" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🥪 Kontaktgrill</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-kontaktgrill" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-slow_cooker" value="slow_cooker" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🫕 Slow Cooker</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-slow_cooker" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-dampfgarer" value="dampfgarer" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">💧 Dampfgarer</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-dampfgarer" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-instant_pot" value="instant_pot" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">⚡ Schnellkochtopf</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-instant_pot" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-brotbackautomat" value="brotbackautomat" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🍞 Brotbackautomat</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-brotbackautomat" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-reiskocher" value="reiskocher" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🍚 Reiskocher</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-reiskocher" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-fritteuse" value="fritteuse" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🛢️ Fritteuse</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-fritteuse" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div class="device-card flex flex-col justify-between bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 transition hover:border-slate-700/80 group">
+                                <label class="flex items-center gap-2 cursor-pointer select-none text-xs w-full py-0.5">
+                                    <input type="checkbox" id="device-eismaschine" value="eismaschine" class="device-checkbox shrink-0 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500 w-3.5 h-3.5">
+                                    <span class="device-label-text transition leading-tight text-slate-300 group-has-[:checked]:text-amber-400 font-medium">🍦 Eismaschine</span>
+                                </label>
+                                <div class="device-model-container hidden mt-1.5 pt-1.5 border-t border-slate-800/40">
+                                    <input type="text" id="device-model-eismaschine" placeholder="Marke & Modell" class="device-model-input w-full bg-slate-900/80 text-[10px] text-slate-300 placeholder-slate-600 px-2 py-1 rounded border border-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unverträglichkeiten & Weitere Präferenzen -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Multi-Select Dropdown für Unverträglichkeiten -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500/70"></i> Unverträglichkeiten / Allergien
+                        </label>
+                        <div class="relative" id="intolerances-dropdown-wrapper">
+                            <!-- Trigger -->
+                            <button type="button" id="intolerances-trigger"
+                                onclick="toggleIntolerancesDropdown()"
+                                class="w-full bg-slate-950 text-left text-slate-400 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm flex items-center justify-between gap-2 hover:border-slate-700 transition">
+                                <span id="intolerances-trigger-text" class="truncate text-slate-500 text-xs">Keine ausgewählt</span>
+                                <i class="fa-solid fa-chevron-down text-slate-600 text-[10px] shrink-0 transition-transform" id="intolerances-chevron"></i>
+                            </button>
+                            <!-- Dropdown Panel -->
+                            <div id="intolerances-panel"
+                                class="hidden absolute z-20 top-full mt-1.5 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl shadow-black/60 overflow-hidden">
+                                <div class="p-2 border-b border-slate-800 flex gap-1">
+                                    <button onclick="selectAllIntolerances(true)" class="flex-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg py-1 transition">Alle</button>
+                                    <button onclick="selectAllIntolerances(false)" class="flex-1 text-[10px] font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-lg py-1 transition">Keine</button>
+                                </div>
+                                <div class="max-h-56 overflow-y-auto p-1.5 space-y-0.5">
+                                    <!-- Hauptallergene (EU-Kennzeichnungspflichtig) -->
+                                    <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest px-2 pt-1.5 pb-0.5">EU-Hauptallergene</p>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Gluten (Weizen, Dinkel, Roggen)" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🌾 Gluten (Weizen, Dinkel, Roggen)</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Laktose (Milch)" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🥛 Laktose (Milch)</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Eier" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🥚 Eier</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Nüsse (Baumnüsse)" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🌰 Nüsse (Haselnuss, Walnuss, ...)</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Erdnüsse" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🥜 Erdnüsse</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Fisch" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🐟 Fisch</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Krustentiere & Meeresfrüchte" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🦐 Krustentiere & Meeresfrüchte</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Soja" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🫘 Soja</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Sellerie" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🥬 Sellerie</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Senf" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🌭 Senf</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Sesam" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🌱 Sesam</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Lupinen" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🌿 Lupinen</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Sulfite & Schwefeldioxid" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🍷 Sulfite & Schwefeldioxid</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Weichtiere (Mollusken)" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🐙 Weichtiere (Tintenfisch, Muscheln)</span>
+                                    </label>
+                                    <!-- Weitere häufige Intoleranzen -->
+                                    <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest px-2 pt-2.5 pb-0.5">Weitere Intoleranzen</p>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Fruktose" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🍎 Fruktose</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Histamin" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🧪 Histamin</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Laktose-frei (kein Käse, keine Butter)" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🧀 Laktose streng (kein Käse/Butter)</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Kein Schweinefleisch" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🐷 Kein Schweinefleisch</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Kein Alkohol" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🚫 Kein Alkohol</span>
+                                    </label>
+                                    <label class="intolerance-option flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-800 text-xs text-slate-300 transition">
+                                        <input type="checkbox" value="Sorbit" class="intolerance-checkbox rounded border-slate-700 bg-slate-950 text-amber-500 w-3.5 h-3.5 shrink-0">
+                                        <span>🍬 Sorbit</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tags der ausgewählten Allergene -->
+                        <div id="intolerances-tags" class="flex flex-wrap gap-1.5 min-h-[24px]"></div>
+                        <p class="text-[10px] text-slate-500">Die KI schließt diese Allergene strikt aus allen Rezepten aus.</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders text-amber-500/70"></i> Weitere persönliche Präferenzen
+                        </label>
+                        <input type="text" id="settings-additional-prefs"
+                            placeholder="z.B. Nur saisonale Zutaten, Low-Carb, kein Fast Food..."
+                            class="w-full bg-slate-950 text-slate-200 px-3.5 py-2.5 rounded-xl border border-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm placeholder-slate-600">
+                        <p class="text-[10px] text-slate-500">Freie Hinweise für die KI, z.B. Diätpräferenzen oder Stilwünsche.</p>
+                    </div>
+                </div>
+
+                <!-- Speichern-Button -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                    <span id="prefs-save-hint" class="text-xs text-slate-500 hidden">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Präferenzen gespeichert!
+                    </span>
+                    <div class="ml-auto">
+                        <button onclick="saveKitchenPreferences()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-5 py-2.5 rounded-xl text-sm shadow-md shadow-amber-500/10 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Präferenzen speichern
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 <!-- Linke Spalte: Standardvorrat (Pantry) & Support -->
                 <div class="space-y-6">
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-lg p-6 space-y-6">
@@ -587,7 +984,7 @@
         <div class="flex items-center gap-2">
             <span class="font-semibold text-slate-400">Küchenhelfer Addon</span>
             <span class="text-slate-700">•</span>
-            <span class="bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-800 text-[10px]">v1.6.3</span>
+            <span class="bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-800 text-[10px]">v1.8.0</span>
         </div>
         <div class="flex items-center gap-3">
             <a href="https://paypal.me/YHolz" target="_blank" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 font-bold px-3.5 py-1.5 rounded-xl border border-amber-500/20 hover:border-amber-500/30 transition-all flex items-center gap-1.5 shadow-sm">

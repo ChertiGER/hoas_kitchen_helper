@@ -1,6 +1,6 @@
 {
   "name": "Küchenhelfer",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "slug": "kitchen_helper",
   "description": "Rezept-Datenbank mit KI-Generierung, Kalenderplanung und Einkaufsliste für Home Assistant.",
   "url": "https://github.com/ChertiGER/hoas_kitchen_helper",
@@ -22,7 +22,10 @@
     "gemini_api_key": "",
     "gemini_model": "gemini-1.5-flash",
     "default_calendar": "",
-    "default_shopping_list": ""
+    "default_shopping_list": "",
+    "cooking_devices": "",
+    "intolerances": "",
+    "additional_prefs": ""
   },
   "schema": {
     "llm_provider": "list(openai|anthropic|openai_compatible|gemini)",
@@ -34,6 +37,9 @@
     "gemini_api_key": "str?",
     "gemini_model": "str?",
     "default_calendar": "str?",
-    "default_shopping_list": "str?"
+    "default_shopping_list": "str?",
+    "cooking_devices": "str?",
+    "intolerances": "str?",
+    "additional_prefs": "str?"
   }
 }

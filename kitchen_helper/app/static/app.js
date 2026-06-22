@@ -775,6 +775,62 @@ async function loadSystemStatus() {
             todoLists = await todoRes.json();
             populateTodoDropdowns();
         }
+
+        // Küchenpräferenzen aus Status laden und in UI eintragen
+        if (status.cooking_devices) {
+            const savedDevices = status.cooking_devices.split(",").map(d => d.trim()).filter(Boolean);
+            const deviceModelMap = {};
+            savedDevices.forEach(d => {
+                const parts = d.split(":");
+                const deviceId = parts[0].trim();
+                const modelName = parts.slice(1).join(":").trim();
+                deviceModelMap[deviceId] = modelName;
+            });
+
+            document.querySelectorAll(".device-checkbox").forEach(cb => {
+                const isChecked = cb.value in deviceModelMap;
+                cb.checked = isChecked;
+                
+                const card = cb.closest(".device-card");
+                if (card) {
+                    const modelContainer = card.querySelector(".device-model-container");
+                    const modelInput = card.querySelector(".device-model-input");
+                    if (modelInput) {
+                        modelInput.value = isChecked ? deviceModelMap[cb.value] : "";
+                    }
+                    if (modelContainer) {
+                        if (isChecked) {
+                            modelContainer.classList.remove("hidden");
+                        } else {
+                            modelContainer.classList.add("hidden");
+                        }
+                    }
+                }
+            });
+        } else {
+            document.querySelectorAll(".device-checkbox").forEach(cb => {
+                cb.checked = false;
+                const card = cb.closest(".device-card");
+                if (card) {
+                    const modelContainer = card.querySelector(".device-model-container");
+                    const modelInput = card.querySelector(".device-model-input");
+                    if (modelInput) modelInput.value = "";
+                    if (modelContainer) modelContainer.classList.add("hidden");
+                }
+            });
+        }
+        if (status.intolerances) {
+            // Intolerances als kommaseparierte Werte -> Checkboxen setzen
+            const savedIntolerances = status.intolerances.split("||").map(s => s.trim()).filter(Boolean);
+            document.querySelectorAll(".intolerance-checkbox").forEach(cb => {
+                cb.checked = savedIntolerances.includes(cb.value);
+            });
+            updateIntolerancesTrigger();
+        }
+        if (status.additional_prefs !== undefined) {
+            const prefsEl = document.getElementById("settings-additional-prefs");
+            if (prefsEl) prefsEl.value = status.additional_prefs || "";
+        }
         
     } catch (e) {
         console.error("Fehler beim Laden des HA-Status:", e);
@@ -997,6 +1053,160 @@ async function saveConfigSettingsSilently() {
         if (modalCalSelect && calendar) modalCalSelect.value = calendar;
     } catch (e) {
         console.error("Fehler beim stillen Speichern der Einstellungen:", e);
+    }
+}
+
+// ---- KÜCHENPRÄFERENZEN: MULTI-SELECT DROPDOWN (UNVERTRÄGLICHKEITEN) ----
+
+function toggleIntolerancesDropdown() {
+    const panel = document.getElementById("intolerances-panel");
+    const chevron = document.getElementById("intolerances-chevron");
+    const isOpen = !panel.classList.contains("hidden");
+    if (isOpen) {
+        panel.classList.add("hidden");
+        chevron.style.transform = "";
+    } else {
+        panel.classList.remove("hidden");
+        chevron.style.transform = "rotate(180deg)";
+    }
+}
+
+function updateIntolerancesTrigger() {
+    const checked = [];
+    document.querySelectorAll(".intolerance-checkbox:checked").forEach(cb => checked.push(cb.value));
+    const trigger = document.getElementById("intolerances-trigger-text");
+    const tagsContainer = document.getElementById("intolerances-tags");
+
+    if (checked.length === 0) {
+        trigger.textContent = "Keine ausgewählt";
+        trigger.classList.add("text-slate-500");
+        trigger.classList.remove("text-slate-200");
+        tagsContainer.innerHTML = "";
+    } else {
+        trigger.textContent = `${checked.length} Allergene ausgewählt`;
+        trigger.classList.remove("text-slate-500");
+        trigger.classList.add("text-slate-200");
+        tagsContainer.innerHTML = checked.map(v =>
+            `<span class="inline-flex items-center gap-1 bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                ${v}
+                <button type="button" onclick="removeIntolerance('${v.replace(/'/g, "\\'")}')"
+                    class="text-red-400/60 hover:text-red-300 ml-0.5">
+                    <i class="fa-solid fa-xmark text-[8px]"></i>
+                </button>
+            </span>`
+        ).join("");
+    }
+}
+
+function removeIntolerance(value) {
+    document.querySelectorAll(".intolerance-checkbox").forEach(cb => {
+        if (cb.value === value) cb.checked = false;
+    });
+    updateIntolerancesTrigger();
+}
+
+function selectAllIntolerances(checked) {
+    document.querySelectorAll(".intolerance-checkbox").forEach(cb => cb.checked = checked);
+    updateIntolerancesTrigger();
+}
+
+function selectAllDevices(checked) {
+    document.querySelectorAll(".device-checkbox").forEach(cb => {
+        cb.checked = checked;
+        const card = cb.closest(".device-card");
+        if (card) {
+            const modelContainer = card.querySelector(".device-model-container");
+            const modelInput = card.querySelector(".device-model-input");
+            if (modelContainer) {
+                if (checked) {
+                    modelContainer.classList.remove("hidden");
+                } else {
+                    modelContainer.classList.add("hidden");
+                }
+            }
+            if (modelInput && !checked) {
+                modelInput.value = "";
+            }
+        }
+    });
+}
+
+// Dropdown schließen wenn außerhalb geklickt wird
+document.addEventListener("click", (e) => {
+    const wrapper = document.getElementById("intolerances-dropdown-wrapper");
+    if (wrapper && !wrapper.contains(e.target)) {
+        const panel = document.getElementById("intolerances-panel");
+        const chevron = document.getElementById("intolerances-chevron");
+        if (panel) panel.classList.add("hidden");
+        if (chevron) chevron.style.transform = "";
+    }
+});
+
+// Trigger bei jeder Änderung einer Checkbox aktualisieren
+document.addEventListener("change", (e) => {
+    if (e.target.classList.contains("intolerance-checkbox")) {
+        updateIntolerancesTrigger();
+    }
+    if (e.target.classList.contains("device-checkbox")) {
+        const card = e.target.closest(".device-card");
+        if (card) {
+            const modelContainer = card.querySelector(".device-model-container");
+            const modelInput = card.querySelector(".device-model-input");
+            if (e.target.checked) {
+                if (modelContainer) modelContainer.classList.remove("hidden");
+                if (modelInput) modelInput.focus();
+            } else {
+                if (modelContainer) modelContainer.classList.add("hidden");
+                if (modelInput) modelInput.value = "";
+            }
+        }
+    }
+});
+
+// ---- KÜCHENPRÄFERENZEN SPEICHERN ----
+async function saveKitchenPreferences() {
+    // Ausgewählte Geräte als kommaseparierter String (inkl. optionaler Marke/Modell)
+    const selectedDevices = [];
+    document.querySelectorAll(".device-checkbox:checked").forEach(cb => {
+        const card = cb.closest(".device-card");
+        const modelInput = card ? card.querySelector(".device-model-input") : null;
+        const modelValue = modelInput ? modelInput.value.trim() : "";
+        if (modelValue) {
+            const cleanModel = modelValue.replace(/[:]/g, "").replace(/,/g, " ");
+            selectedDevices.push(`${cb.value}:${cleanModel}`);
+        } else {
+            selectedDevices.push(cb.value);
+        }
+    });
+    const cooking_devices = selectedDevices.join(",");
+
+    // Unverträglichkeiten aus Multi-Select Checkboxen (|| als Trennzeichen, da Werte Kommas enthalten können)
+    const selectedIntolerances = [];
+    document.querySelectorAll(".intolerance-checkbox:checked").forEach(cb => {
+        selectedIntolerances.push(cb.value);
+    });
+    const intolerances = selectedIntolerances.join("||");
+
+    const additional_prefs = document.getElementById("settings-additional-prefs")?.value?.trim() || "";
+
+    try {
+        const response = await fetch("./api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cooking_devices, intolerances, additional_prefs })
+        });
+
+        if (!response.ok) throw new Error("Fehler beim Speichern der Präferenzen");
+
+        // Kurzen Bestätigungshinweis einblenden
+        const hint = document.getElementById("prefs-save-hint");
+        if (hint) {
+            hint.classList.remove("hidden");
+            setTimeout(() => hint.classList.add("hidden"), 3000);
+        }
+        showAlert('<i class="fa-solid fa-kitchen-set"></i> Küchenpräferenzen gespeichert!', "success");
+    } catch (e) {
+        showAlert(e.message, "error");
     }
 }
 

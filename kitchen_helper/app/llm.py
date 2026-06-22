@@ -23,6 +23,9 @@ def load_config() -> Dict[str, Any]:
         "gemini_model": os.environ.get("GEMINI_MODEL", "gemini-1.5-flash"),
         "default_calendar": os.environ.get("DEFAULT_CALENDAR", ""),
         "default_shopping_list": os.environ.get("DEFAULT_SHOPPING_LIST", ""),
+        "cooking_devices": os.environ.get("COOKING_DEVICES", ""),
+        "intolerances": os.environ.get("INTOLERANCES", ""),
+        "additional_prefs": os.environ.get("ADDITIONAL_PREFS", ""),
     }
 
     if os.path.exists(OPTIONS_PATH):
@@ -60,7 +63,20 @@ def load_config() -> Dict[str, Any]:
         config["anthropic_api_key"] = ""
         config["anthropic_model"] = ""
 
+    # DB-Einstellungen für Präferenzen überschreiben options.json-Werte
+    # (Werte, die über die UI gespeichert wurden, haben Vorrang)
+    try:
+        from .database import get_setting as _get_setting
+        for pref_key in ("cooking_devices", "intolerances", "additional_prefs",
+                         "default_calendar", "default_shopping_list"):
+            db_val = _get_setting(pref_key)
+            if db_val is not None:
+                config[pref_key] = db_val
+    except Exception:
+        pass  # Beim ersten Start oder außerhalb von HA kann die DB noch nicht initialisiert sein
+
     return config
+
 
 
 def clean_json_response(text: str) -> str:
@@ -72,9 +88,141 @@ def clean_json_response(text: str) -> str:
         return match.group(1).strip()
     return text
 
+def build_preferences_context(cooking_devices: str, intolerances: str, additional_prefs: str) -> str:
+    """
+    Erstellt einen Kontext-Block für Gerätepräferenzen und Unverträglichkeiten,
+    der in alle KI-Prompts eingebettet wird.
+    """
+    lines = []
 
-def generate_recipe_prompt(prompt_text: str, dietary: str, style: str, servings: int) -> str:
+    # Küchengeräte
+    if cooking_devices and cooking_devices.strip():
+        raw_devices = [d.strip() for d in cooking_devices.split(",") if d.strip()]
+        device_list = []
+        device_models = {}
+        for d in raw_devices:
+            if ":" in d:
+                parts = d.split(":", 1)
+                dev_id = parts[0].strip()
+                dev_model = parts[1].strip()
+                device_list.append(dev_id)
+                device_models[dev_id] = dev_model
+            else:
+                device_list.append(d)
+
+        device_labels = {
+            # Grundausstattung
+            "herd": "Herd / Induktionskochfeld",
+            "backofen": "Backofen",
+            "mikrowelle": "Mikrowelle",
+            "wasserkocher": "Wasserkocher",
+            "toaster": "Toaster",
+            # Kaffee
+            "kaffeemaschine": "Kaffeemaschine",
+            "kaffeevollautomat": "Kaffeevollautomat",
+            "espressomaschine": "Espressomaschine",
+            # Küchenmaschinen
+            "stabmixer": "Stabmixer / Pürierstab",
+            "handmixer": "Handmixer",
+            "kuechenmaschine": "Küchenmaschine (Standmixer/Rührmaschine)",
+            "standmixer": "Standmixer / Blender",
+            "thermomix": "Thermomix (TM)",
+            # Spezialgeräte
+            "airfryer": "Airfryer / Heißluftfritteuse",
+            "waffeleisen": "Waffeleisen",
+            "kontaktgrill": "Kontaktgrill / Sandwichmaker",
+            "slow_cooker": "Slow Cooker / Schongarer",
+            "dampfgarer": "Dampfgarer / Steamer",
+            "instant_pot": "Schnellkochtopf / Instant Pot",
+            "brotbackautomat": "Brotbackautomat",
+            "reiskocher": "Reiskocher",
+            "fritteuse": "Fritteuse",
+            "eismaschine": "Eismaschine",
+        }
+        labeled = []
+        for d in device_list:
+            label = device_labels.get(d, d)
+            if d in device_models and device_models[d]:
+                label = f"{label} (Modell/Marke: {device_models[d]})"
+            labeled.append(label)
+        lines.append(f"Verfügbare Küchengeräte: {', '.join(labeled)}")
+
+        # Spezifische Geräteanweisungen (KI-relevante Geräte)
+        if "thermomix" in device_list:
+            lines.append(
+                "THERMOMIX-MODUS AKTIV: Optimiere die Zubereitungsschritte vollständig für den Thermomix. "
+                "Verwende Thermomix-spezifische Anweisungen (z.B. 'TM-Schüssel', 'Varoma', Geschwindigkeits- und Temperaturstufen "
+                "wie 'Stufe 4, 100°C, 5 Min.', 'Linkslauf', 'Garen/Kochen-Funktion'). "
+                "Passe Mengen und Schritte an die TM-typischen Arbeitsabläufe an. "
+                "Falls andere Geräte ebenfalls verfügbar sind, bevorzuge den Thermomix für den Hauptkochprozess."
+            )
+        if "airfryer" in device_list and "thermomix" not in device_list:
+            lines.append(
+                "AIRFRYER-MODUS AKTIV: Passe die Zubereitung an die Heißluftfritteuse an. "
+                "Gib konkrete Temperatur (°C) und Zeitangaben für den Airfryer an. "
+                "Weise auf nötige Wendeschritte und Körbe hin."
+            )
+        elif "airfryer" in device_list and "thermomix" in device_list:
+            lines.append(
+                "AIRFRYER VERFÜGBAR: Nutze den Airfryer für Knusprigkeitsschritte (z.B. Bräunen, Krustenbildung) "
+                "als Ergänzung zum Thermomix."
+            )
+        if "slow_cooker" in device_list:
+            lines.append(
+                "SLOW COOKER VERFÜGBAR: Biete optional eine Slow-Cooker-Variante an, wenn das Rezept sich dafür eignet "
+                "(z.B. Schmorgerichte, Eintöpfe, Suppen). Gib Temperatur (Low/High) und Garzeit an."
+            )
+        if "instant_pot" in device_list:
+            lines.append(
+                "SCHNELLKOCHTOPF VERFÜGBAR: Erwähne optional die Schnellkochtopf-Variante mit reduzierter Kochzeit und Druckangaben."
+            )
+        if "dampfgarer" in device_list:
+            lines.append(
+                "DAMPFGARER VERFÜGBAR: Weise auf geeignete Schritte hin, die im Dampfgarer zubereitet werden können "
+                "(schonende Zubereitung von Gemüse, Fisch, Getreideprodukten). Gib Temperatur und Zeit an."
+            )
+        if "mikrowelle" in device_list and "thermomix" not in device_list:
+            lines.append(
+                "MIKROWELLE VERFÜGBAR: Nutze die Mikrowelle wo sinnvoll als zeitsparendes Hilfsmittel "
+                "(z.B. zum Auftauen, Erwärmen von Saucen, Schmelzen von Schokolade/Butter)."
+            )
+
+    # Unverträglichkeiten – gespeichert mit || als Trennzeichen (Werte können Kommas enthalten)
+    if intolerances and intolerances.strip():
+        # Unterstütze beide Formate: altes Kommaformat und neues ||-Format
+        if "||" in intolerances:
+            intol_list = [i.strip() for i in intolerances.split("||") if i.strip()]
+        else:
+            intol_list = [i.strip() for i in intolerances.split(",") if i.strip()]
+
+        if intol_list:
+            intol_str = ", ".join(intol_list)
+            lines.append(
+                f"UNVERTRÄGLICHKEITEN / ALLERGIEN (STRIKT EINHALTEN): {intol_str}. "
+                f"Verwende KEINE Zutaten, die diese Unverträglichkeiten auslösen könnten. "
+                f"Wähle geeignete Alternativen (z.B. pflanzliche Milch statt Kuhmilch bei Laktoseintoleranz, "
+                f"glutenfreies Mehl statt Weizenmehl bei Glutenunverträglichkeit). "
+                f"Beachte auch versteckte Allergene in verarbeiteten Zutaten und Fertigprodukten."
+            )
+
+    # Weitere Präferenzen
+    if additional_prefs and additional_prefs.strip():
+        lines.append(f"Weitere persönliche Präferenzen: {additional_prefs.strip()}")
+
+    if not lines:
+        return ""
+
+    return "\n\nPERSÖNLICHE KÜCHENPRÄFERENZEN (BITTE STRIKT BEACHTEN):\n" + "\n".join(f"- {l}" for l in lines)
+
+
+
+
+def generate_recipe_prompt(prompt_text: str, dietary: str, style: str, servings: int,
+                           cooking_devices: str = "", intolerances: str = "",
+                           additional_prefs: str = "") -> str:
     """Erstellt den System- und User-Prompt für die Rezeptgenerierung."""
+    preferences_context = build_preferences_context(cooking_devices, intolerances, additional_prefs)
+
     system_prompt = (
         "Du bist ein professioneller Chefkoch und Küchenhelfer. Deine Aufgabe ist es, ein hochwertiges Rezept "
         "auf Deutsch basierend auf den Wünschen des Benutzers zu erstellen.\n"
@@ -101,6 +249,7 @@ def generate_recipe_prompt(prompt_text: str, dietary: str, style: str, servings:
         "- 'instructions' ist ein einzelner zusammenhängender String mit Zeilenumbrüchen (\\n).\n"
         "- 'tags' ist ein Array von Strings. Wähle passende Tags ausschließlich aus dieser Liste aus (du kannst mehrere wählen oder ein leeres Array []): "
         "vegetarisch, vegan, glutenfrei, laktosefrei, low-carb, schnell & einfach, kinderfreundlich, festlich, gesund & leicht, deftig."
+        + preferences_context
     )
 
     user_details = f"Rezept-Idee / Zutaten: {prompt_text}\n"
@@ -287,7 +436,17 @@ def generate_recipe_via_ai(
     config = load_config()
     provider = config["llm_provider"]
 
-    system_prompt, user_prompt = generate_recipe_prompt(prompt_text, dietary, style, servings)
+    # Präferenzen aus der Konfiguration laden
+    cooking_devices = config.get("cooking_devices", "")
+    intolerances = config.get("intolerances", "")
+    additional_prefs = config.get("additional_prefs", "")
+
+    system_prompt, user_prompt = generate_recipe_prompt(
+        prompt_text, dietary, style, servings,
+        cooking_devices=cooking_devices,
+        intolerances=intolerances,
+        additional_prefs=additional_prefs
+    )
 
     if provider == "openai":
         raw_response = call_openai(config, system_prompt, user_prompt, image_data_b64, image_mime_type)
@@ -389,9 +548,18 @@ def scrape_recipe_from_url(url: str) -> Dict[str, Any]:
         "vegetarisch, vegan, glutenfrei, laktosefrei, low-carb, schnell & einfach, kinderfreundlich, festlich, gesund & leicht, deftig."
     )
 
+    # Präferenzen einbinden
+    config = load_config()
+    preferences_context = build_preferences_context(
+        config.get("cooking_devices", ""),
+        config.get("intolerances", ""),
+        config.get("additional_prefs", "")
+    )
+    if preferences_context:
+        system_prompt += preferences_context
+
     user_prompt = f"Hier ist der extrahierte Text der Webseite:\n\n{page_text}"
 
-    config = load_config()
     provider = config["llm_provider"]
 
     if provider == "openai":
@@ -446,9 +614,17 @@ def import_recipe_from_image(image_data_b64: str, image_mime_type: str) -> Dict[
         "vegetarisch, vegan, glutenfrei, laktosefrei, low-carb, schnell & einfach, kinderfreundlich, festlich, gesund & leicht, deftig."
     )
 
+    config = load_config()
+    preferences_context = build_preferences_context(
+        config.get("cooking_devices", ""),
+        config.get("intolerances", ""),
+        config.get("additional_prefs", "")
+    )
+    if preferences_context:
+        system_prompt += preferences_context
+
     user_prompt = "Lies dieses Rezeptbild und extrahiere alle Informationen in das JSON-Format."
 
-    config = load_config()
     provider = config["llm_provider"]
 
     if provider == "openai":
@@ -503,9 +679,17 @@ def generate_recipe_from_leftovers_image(image_data_b64: str, image_mime_type: s
         "vegetarisch, vegan, glutenfrei, laktosefrei, low-carb, schnell & einfach, kinderfreundlich, festlich, gesund & leicht, deftig."
     )
 
+    config = load_config()
+    preferences_context = build_preferences_context(
+        config.get("cooking_devices", ""),
+        config.get("intolerances", ""),
+        config.get("additional_prefs", "")
+    )
+    if preferences_context:
+        system_prompt += preferences_context
+
     user_prompt = "Analysiere dieses Foto und erstelle ein tolles Rezept aus den darauf erkennbaren Zutaten."
 
-    config = load_config()
     provider = config["llm_provider"]
 
     if provider == "openai":
