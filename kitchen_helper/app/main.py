@@ -64,6 +64,14 @@ app = FastAPI(
 @app.middleware("http")
 async def memory_cleanup_middleware(request: Request, call_next):
     response = await call_next(request)
+    
+    # Cache Control für HTML, JS und CSS hinzufügen, um Caching-Probleme bei Updates zu verhindern
+    path = request.url.path
+    if path.endswith((".html", ".js", ".css")) or path == "/":
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        
     # Nach jedem Request Speicher aufräumen
     gc.collect()
     try:
