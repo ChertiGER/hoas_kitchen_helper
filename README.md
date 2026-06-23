@@ -53,6 +53,41 @@ Du kannst in der Konfiguration Standard-Entitäten festlegen, damit diese in der
 - **`default_calendar`**: Die Entity-ID deines HA-Kalenders (z.B. `calendar.weekly_meals`).
 - **`default_shopping_list`**: Die Entity-ID deiner HA-To-Do-Liste (z.B. `todo.einkaufsliste`) oder `legacy` für die klassische Einkaufsliste.
 
+### 🔑 Guide: KI API-Schlüssel erstellen (Kostenlos & Günstig)
+
+Um die KI-Funktionen des Küchenhelfers nutzen zu können, benötigst du einen API-Schlüssel eines Anbieters. Hier erfährst du, wie du diese erstellst:
+
+#### 1. Google Gemini 🌟 (Empfohlen & Kostenlos)
+Google bietet über das **Google AI Studio** einen dauerhaften, **kostenfreien Zugang** mit großzügigen Limits (perfekt für die tägliche Nutzung):
+1. Öffne das [Google AI Studio](https://aistudio.google.com/).
+2. Melde dich mit deinem normalen Google-Konto an.
+3. Klicke auf **"Get API key"** und dann auf **"Create API key"**.
+4. Wähle ein Projekt aus (oder erstelle ein neues) und kopiere den Schlüssel.
+5. Konfiguration im Addon: `llm_provider: gemini`, `gemini_api_key: DEIN_SCHLÜSSEL`, `gemini_model: gemini-1.5-flash`.
+
+#### 2. OpenAI (ChatGPT)
+OpenAI bietet keinen dauerhaften Gratis-Zugang, aber neue Konten erhalten manchmal ein Startguthaben von 5 $:
+1. Gehe zur [OpenAI Platform](https://platform.openai.com/).
+2. Erstelle ein Konto und navigiere in der linken Seitenleiste zu **API Keys**.
+3. Klicke auf **"Create new secret key"** und kopiere den Schlüssel.
+4. *Hinweis*: Sollte dein Startguthaben abgelaufen sein, musst du unter **Billing** ein Guthaben (z.B. 5 $) aufladen. Da die genutzten Modelle (wie `gpt-4o-mini`) extrem günstig sind, reichen 5 $ für viele Monate der Nutzung.
+
+#### 3. Anthropic (Claude)
+Anthropic bietet bei Neuregistrierung und Telefonnummer-Verifizierung meist ein kostenloses Startguthaben von 5 $:
+1. Registriere dich in der [Anthropic Console](https://console.anthropic.com/).
+2. Bestätige deine Telefonnummer, um das Gratis-Guthaben freizuschalten.
+3. Gehe zu **API Keys**, erstelle einen neuen Schlüssel und kopiere ihn.
+4. Ist das Startguthaben verbraucht, muss ein Prepaid-Guthaben aufgeladen werden.
+
+#### 4. Ollama (100% lokal, kostenlos & privat)
+Du kannst auch ein komplett lokales Sprachmodell auf deinem eigenen Server oder PC laufen lassen:
+1. Installiere [Ollama](https://ollama.com/) auf deinem System und lade ein Modell herunter (z.B. `llama3` oder `phi3`).
+2. Konfiguration im Addon:
+   - `llm_provider: openai_compatible`
+   - `openai_api_key: ollama` (beliebiger Platzhalter)
+   - `openai_model: llama3` (dein lokales Modell)
+   - `custom_openai_url: http://DEINE_IP:11434/v1` (Port 11434 ist der Standard-Port von Ollama)
+
 ---
 
 ## 🎴 Lovelace Dashboard-Karte (ab v1.7.0)

@@ -19,6 +19,15 @@ Gehe in den Tab **Konfiguration** des Addons und wähle deinen bevorzugten `llm_
 | **`anthropic`** | Anthropic (Claude-Modelle) | `anthropic_api_key`, `anthropic_model` |
 | **`openai_compatible`** | Eigene APIs (z.B. Ollama, LocalAI) | `openai_api_key`, `openai_model`, `custom_openai_url` |
 
+### 🔑 API-Schlüssel erstellen (Kostenlos & Günstig)
+
+Um die KI-Funktionen zu nutzen, benötigst du einen API-Key. Hier erfährst du, wie du diese erstellst:
+
+*   **Google Gemini 🌟 (Kostenlos & Empfohlen)**: Registriere dich im [Google AI Studio](https://aistudio.google.com/) mit einem Google-Konto. Klicke auf **"Get API key"** -> **"Create API key"** und kopiere ihn. Der Zugang ist dauerhaft kostenlos.
+*   **OpenAI (ChatGPT)**: Registriere dich auf der [OpenAI Platform](https://platform.openai.com/). Erstelle unter **API Keys** einen Schlüssel. Wenn dein Startguthaben abgelaufen ist, musst du unter *Billing* Guthaben (z.B. 5 $) aufladen.
+*   **Anthropic (Claude)**: Registriere dich in der [Anthropic Console](https://console.anthropic.com/), verifiziere deine Telefonnummer für 5 $ Startguthaben und erstelle unter **API Keys** einen Schlüssel.
+*   **Ollama (100% lokal & privat)**: Installiere [Ollama](https://ollama.com/), lade ein Modell (z.B. `llama3`) und trage `http://DEINE_IP:11434/v1` als `custom_openai_url` ein.
+
 ---
 
 ## 🍲 Funktionen im Überblick
