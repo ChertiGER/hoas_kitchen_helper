@@ -157,15 +157,25 @@ def build_preferences_context(cooking_devices: str, intolerances: str, additiona
                 "Falls andere Geräte ebenfalls verfügbar sind, bevorzuge den Thermomix für den Hauptkochprozess."
             )
         if "airfryer" in device_list and "thermomix" not in device_list:
-            lines.append(
-                "AIRFRYER-MODUS AKTIV: Passe die Zubereitung an die Heißluftfritteuse an. "
-                "Gib konkrete Temperatur (°C) und Zeitangaben für den Airfryer an. "
-                "Weise auf nötige Wendeschritte und Körbe hin."
-            )
+            if "backofen" in device_list or "herd" in device_list:
+                lines.append(
+                    "AIRFRYER VERFÜGBAR: Nutze die Heißluftfritteuse (Airfryer) für Gerichte oder Teilschritte, "
+                    "die sich hervorragend dafür eignen (z.B. Pommes, Nuggets, knuspriges Gemüse, Rösten, Aufbacken). "
+                    "Wenn das Gericht jedoch traditionell und wesentlich besser für den Backofen (wie ganze Pizzen, Aufläufe, Kuchen) "
+                    "oder den Herd geeignet ist, verwende Backofen/Herd als Hauptgargerät und biete den Airfryer höchstens "
+                    "als optionale Alternative für kleinere Portionen an."
+                )
+            else:
+                lines.append(
+                    "AIRFRYER-MODUS AKTIV: Da weder Backofen noch Herd als verfügbar angegeben sind, passe die Zubereitung "
+                    "vollständig an die Heißluftfritteuse (Airfryer) an. Halte Portionen/Mengen airfryer-kompatibel "
+                    "(ggf. Zubereitung in Chargen erwähnen) und gib konkrete Temperaturen (°C) und Garzeiten an."
+                )
         elif "airfryer" in device_list and "thermomix" in device_list:
             lines.append(
                 "AIRFRYER VERFÜGBAR: Nutze den Airfryer für Knusprigkeitsschritte (z.B. Bräunen, Krustenbildung) "
-                "als Ergänzung zum Thermomix."
+                "als Ergänzung zum Thermomix. Wenn ein Gericht traditionell besser für den Backofen geeignet ist, "
+                "nutze diesen für den Backschritt."
             )
         if "slow_cooker" in device_list:
             lines.append(

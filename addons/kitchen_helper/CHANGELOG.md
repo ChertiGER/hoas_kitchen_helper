@@ -1,5 +1,12 @@
 # Changelog – Küchenhelfer Addon
 
+## [1.8.3] – 2026-06-23
+
+### Optimiert
+- **Airfryer KI-Zubereitungslogik**: Der Systemprompt wurde überarbeitet. Wenn sowohl Backofen/Herd als auch ein Airfryer in den Küchengeräten ausgewählt sind, verwendet die KI für Rezepte, die traditionell besser für den Backofen/Herd geeignet sind (wie z. B. Pizzen, Kuchen, große Aufläufe), nun Backofen bzw. Herd statt stur die Heißluftfritteuse vorzuschreiben.
+
+---
+
 ## [1.8.2] – 2026-06-22
 
 ### Behoben
